@@ -258,3 +258,23 @@ def test_report_text_is_escaped_not_executed():
     assert "<script>alert(1)</script>" not in page
     assert "&lt;script&gt;" in page
     assert "<b>tags</b>" not in page
+
+
+@pytest.mark.parametrize("configured", [
+    "mapsadmin@gmail.com",
+    "maps.admin@gmail.com",          # dots are ignored by Gmail
+    "MapsAdmin@Gmail.com",           # case is ignored
+    "maps.admin+site@googlemail.com",  # tag and alias domain
+])
+def test_an_admin_address_is_matched_however_it_is_written(monkeypatch, configured):
+    """The configured address must be reduced the same way a stored one is,
+    or a dot in it silently grants nobody admin."""
+    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", (configured,))
+    become_admin()
+    assert accounts.authenticate(ADMIN_EMAIL, "a good password").is_admin
+
+
+def test_a_malformed_admin_address_is_ignored_not_fatal(monkeypatch):
+    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", ("not-an-address", ADMIN_EMAIL))
+    become_admin()
+    assert accounts.authenticate(ADMIN_EMAIL, "a good password").is_admin

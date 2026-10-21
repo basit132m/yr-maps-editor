@@ -124,6 +124,23 @@ def check_password_quality(password: str) -> None:
 # ----------------------------------------------------------------- users
 
 
+def admin_emails() -> frozenset[str]:
+    """The configured admin addresses, reduced the same way stored ones are.
+
+    Without this an address written with dots, a +tag, or googlemail.com
+    would never match the canonical form in the database, and admin would
+    silently never be granted. Entries that are not usable Gmail addresses
+    are ignored rather than crashing the app on a typo.
+    """
+    resolved = set()
+    for raw in ADMIN_EMAILS:
+        try:
+            resolved.add(canonical_email(raw))
+        except AccountError:
+            continue
+    return frozenset(resolved)
+
+
 def _sync_admin(conn, row: sqlite3.Row) -> sqlite3.Row:
     """Keep the admin flag in step with the configured addresses.
 
@@ -131,7 +148,7 @@ def _sync_admin(conn, row: sqlite3.Row) -> sqlite3.Row:
     flag away again, so access is controlled from the environment rather
     than by editing the database.
     """
-    should_be = 1 if row["email"] in ADMIN_EMAILS else 0
+    should_be = 1 if row["email"] in admin_emails() else 0
     if row["is_admin"] != should_be:
         conn.execute("UPDATE users SET is_admin = ? WHERE id = ?",
                      (should_be, row["id"]))
