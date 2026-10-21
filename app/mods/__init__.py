@@ -6,12 +6,14 @@ from .auto_repair import AutoRepairMod
 from .base import Change, Choice, Mod, Option
 from .game_speed import GameSpeedMod
 from .money import MoneyMod
+from .never_destroyed import NeverDestroyedMod
 
 #: Order here is the order shown in the web form.
 REGISTRY: tuple[Mod, ...] = (
     AutoRepairMod(),
     MoneyMod(),
     GameSpeedMod(),
+    NeverDestroyedMod(),
 )
 
 BY_ID = {mod.id: mod for mod in REGISTRY}

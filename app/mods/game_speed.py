@@ -11,7 +11,10 @@ setting:
   a map can override, so it works in every version of the game. It is the
   number of minutes a 1000-credit item takes to build, calculated as
   ``(Cost / 1000) * BuildSpeed``, so lower is faster. The stock value is
-  0.7.
+  0.7, and community maps run anywhere from 0.1 to 0.55.
+* **Construction time** is ``[General] BuildupTime``, the wait while a
+  placed building rises into position before it works. Stock is 0.06.
+  This is separate from BuildSpeed, which covers the queue.
 """
 
 from __future__ import annotations
@@ -31,13 +34,17 @@ BUILD_SPEED_MAP = {
     "normal": None,
     "fast": "0.35",
     "faster": "0.15",
-    "instant": "0.05",
+    "instant": "0.10",
 }
+
+#: [General] BuildupTime, the rise-into-place animation after a building is
+#: placed. Stock is 0.06; a community map ships 0.01, which is near-instant.
+FAST_BUILDUP_TIME = "0.01"
 
 BUILD_SPEED_CHOICES = (
     Choice("fast", "Fast — about twice as quick"),
-    Choice("faster", "Very fast — about five times as quick"),
-    Choice("instant", "Near-instant"),
+    Choice("faster", "Very fast — about four times as quick"),
+    Choice("instant", "Near-instant — about seven times quicker"),
     Choice("normal", "Leave unchanged"),
 )
 
@@ -77,6 +84,16 @@ class GameSpeedMod(Mod):
             ),
         ),
         Option(
+            id="buildup",
+            label="Placed buildings finish construction instantly",
+            kind="bool",
+            default="1",
+            help=(
+                "Cuts the rise-into-place animation after you place a "
+                "building. Separate from the queue speed above."
+            ),
+        ),
+        Option(
             id="lock",
             label="Lock the speed slider so players cannot change it",
             kind="bool",
@@ -104,6 +121,10 @@ class GameSpeedMod(Mod):
             label = next(c.label for c in BUILD_SPEED_CHOICES if c.value == build_speed)
             self.write(ymap, changes, "General", "BuildSpeed",
                        BUILD_SPEED_MAP[build_speed], note=label)
+
+        if self.enabled(values, "buildup"):
+            self.write(ymap, changes, "General", "BuildupTime",
+                       FAST_BUILDUP_TIME, note="Buildings rise into place at once")
 
         if self.enabled(values, "lock"):
             self.write(ymap, changes, "ForcedOptions", "chkDisableGameSpeed",

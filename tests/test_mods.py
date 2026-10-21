@@ -250,40 +250,34 @@ def test_lighting_tweaks_do_not_count_as_a_conversion(map_bytes):
 # -- repair --------------------------------------------------------------
 
 
-def test_fast_repair_makes_repairing_free_and_quick(map_bytes, all_options):
-    from app.mods.auto_repair import REPAIR_PERCENT, REPAIR_RATE, REPAIR_STEP
-    ini = apply_all(map_bytes, all_options).ini
-    assert ini.get("General", "RepairPercent") == REPAIR_PERCENT
-    assert ini.get("General", "RepairStep") == REPAIR_STEP
-    assert ini.get("General", "RepairRate") == REPAIR_RATE
-
-
-def test_repair_step_cannot_crash_the_game(map_bytes):
-    """A RepairStep above a structure's Strength crashes the engine when
-    that structure is damaged and repair starts. Walls are the weakest
-    buildings in the game, so the value has to stay well under them."""
-    from app.mods.auto_repair import REPAIR_STEP
-    assert 0 < int(REPAIR_STEP) <= 35
-
-
-def test_repair_is_faster_than_retail(map_bytes):
-    """Retail RepairRate is 0.016 minutes between steps; lower is quicker."""
-    from app.mods.auto_repair import REPAIR_RATE
-    assert 0 < float(REPAIR_RATE) < 0.016
-
-
-def test_fast_repair_needs_no_cncnet(map_bytes):
+def test_auto_repair_alone_leaves_repair_speed_and_cost_alone(map_bytes):
+    """Auto-repair starts the wrench. It must not also make repair free or
+    instant, or buildings become impossible to destroy."""
     ymap = YRMap.load(map_bytes)
-    BY_ID["auto_repair"].apply(ymap, {"fast_repair": "1"})
+    BY_ID["auto_repair"].apply(ymap, {"auto": "1", "structures": "1"})
+    assert ymap.ini.get("IQ", "RepairSell") == "0"
+    for key in ("RepairPercent", "RepairStep", "RepairRate"):
+        assert ymap.ini.get("General", key) is None, key
+
+
+def test_never_destroyed_makes_repair_free_and_fast(map_bytes):
+    ymap = YRMap.load(map_bytes)
+    BY_ID["never_destroyed"].apply(ymap, {"strength": "unbreakable"})
     assert ymap.ini.get("General", "RepairPercent") == "0%"
-    assert not ymap.ini.has_section("ForcedOptions")
+    assert float(ymap.ini.get("General", "RepairRate")) < 0.016
+    assert int(ymap.ini.get("General", "RepairStep")) > 8
+    # It must start repair by itself, or the rest never runs.
+    assert ymap.ini.get("IQ", "RepairSell") == "0"
 
 
-def test_each_repair_lever_is_independent(map_bytes):
-    ymap = YRMap.load(map_bytes)
-    BY_ID["auto_repair"].apply(ymap, {"structures": "1"})
-    assert ymap.ini.get("GACNST", "SelfHealing") == "yes"
-    assert ymap.ini.get("General", "RepairPercent") is None
+@pytest.mark.parametrize("strength", ["tough", "very_tough", "unbreakable"])
+def test_no_strength_can_crash_the_game(strength):
+    """RepairStep above a structure's own Strength crashes the engine once
+    that structure is damaged and repair begins; walls are the weakest."""
+    from app.mods.never_destroyed import STRENGTHS
+    rate, step, percent = STRENGTHS[strength]
+    assert 0 < int(step) <= 35
+    assert 0 < float(rate) <= 0.016
 
 
 def test_auto_repair_lowers_the_iq_threshold(map_bytes, all_options):
@@ -306,3 +300,19 @@ def test_auto_repair_merges_into_an_existing_iq_section(map_bytes):
     ymap = YRMap.load(raw)
     BY_ID["auto_repair"].apply(ymap, {"auto": "1"})
     assert ymap.ini.items("IQ") == [("RepairSell", "0"), ("GuardArea", "2")]
+
+
+def test_buildup_time_is_faster_than_stock(map_bytes, all_options):
+    """Stock BuildupTime is 0.06; a real community map ships 0.01."""
+    from app.mods.game_speed import FAST_BUILDUP_TIME
+    ini = apply_all(map_bytes, all_options).ini
+    assert ini.get("General", "BuildupTime") == FAST_BUILDUP_TIME
+    assert 0 < float(FAST_BUILDUP_TIME) < 0.06
+
+
+def test_build_speed_values_match_what_real_maps_use(map_bytes):
+    """Community maps run BuildSpeed between 0.1 and 0.55; stock is 0.7."""
+    from app.mods.game_speed import BUILD_SPEED_MAP
+    for value in BUILD_SPEED_MAP.values():
+        if value is not None:
+            assert 0.1 <= float(value) < 0.7

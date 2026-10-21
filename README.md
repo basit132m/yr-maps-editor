@@ -14,9 +14,10 @@ both.
 | Upgrade | What it writes | Where it works |
 |---|---|---|
 | **Auto-repair for buildings** | `[IQ] RepairSell=0` | **everywhere** |
-| **Repair — free and near-instant** | `[General] RepairPercent` / `RepairStep` / `RepairRate` | everywhere |
+| **Never-destroyed buildings** | `RepairPercent` / `RepairStep` / `RepairRate` | everywhere |
 | **Repair — slow regeneration** | `SelfHealing=yes` on every buildable structure | everywhere |
 | **Repair — CnCNet lobby switch** | `chkAutoRepair=true` | CnCNet only |
+| **Speed — construction time** | `[General] BuildupTime` | everywhere |
 | **Unlimited money — income** | `ProduceCashDelay` / `ProduceCashAmount` / `ProduceCashStartup` on each faction's Construction Yard | everywhere |
 | **Unlimited money — starting credits** | `cmbCredits` | CnCNet only |
 | **Speed — production** | `[General] BuildSpeed` | everywhere |
@@ -50,12 +51,19 @@ have an IQ of zero — which is precisely why players never get it.
 Lowering the threshold to `0` brings human players in, and their buildings
 start repairing the moment they take damage.
 
-A widely played community survival map enables building auto-repair with
-that single key and nothing else, which is where this came from.
+Four maps in the test corpus ship `RepairSell=0`, which is where this came
+from; a fifth writes the stock `1` explicitly.
 
-Because what the key really unlocks is a *choice* between repairing and
-selling, decided on cost, the free-repair option matters more than it
-looks: at zero cost there is never a reason to sell.
+**Auto-repair deliberately changes nothing else.** Repair then runs at the
+game's own pace and costs its usual credits — the wrench simply switches
+itself on. Buildings still lose health under fire and can still be
+destroyed, which is the point.
+
+Making that repair free and near-instant is a separate upgrade,
+**Never-destroyed buildings**, off by default. It is genuinely
+overpowered: a base with it on heals about as fast as it can be damaged.
+Keeping the two apart means auto-repair stays a convenience rather than
+an invincibility switch.
 
 `SelfHealing=yes` is offered separately and defaults to off. It works on
 buildings, but the engine hardcodes it to **one hit point per repair
