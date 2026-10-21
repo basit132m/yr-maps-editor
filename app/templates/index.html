@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h1>Upload a map</h1>
+  <p class="lead">
+    Choose a Yuri&rsquo;s Revenge map file and we&rsquo;ll read it, show you what&rsquo;s
+    inside, and let you pick the upgrades you want.
+  </p>
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <label class="dropzone" for="mapfile">
+      <span class="dropzone-title">Choose map file</span>
+      <span class="dropzone-hint">.map, .mpr or .yrm &mdash; up to {{ max_mb }} MB</span>
+      <input id="mapfile" type="file" name="mapfile" accept=".map,.mpr,.yrm" required>
+    </label>
+    <button type="submit" class="primary">Analyse map</button>
+  </form>
+</section>
+
+<section class="card muted">
+  <h2>What you can change</h2>
+  <ul class="feature-list">
+    <li><strong>Auto-repair</strong> &mdash; damaged base structures repair themselves.</li>
+    <li><strong>Maximum money</strong> &mdash; everyone starts with 100,000 credits.</li>
+    <li><strong>Game speed</strong> &mdash; start the match at full speed, optionally locked.</li>
+  </ul>
+  <p class="note">
+    Everyone in a match needs the same edited file, so share the download with
+    the other players before you host.
+  </p>
+</section>
+{% endblock %}

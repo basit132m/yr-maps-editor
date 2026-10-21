@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ info.name }} &mdash; {{ site_name }}{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>{{ info.name }}</h1>
+  <dl class="facts">
+    <div><dt>File</dt><dd>{{ filename }}</dd></div>
+    <div><dt>Author</dt><dd>{{ info.author }}</dd></div>
+    <div><dt>Theater</dt><dd>{{ info.theater|title }}</dd></div>
+    {% if info.width %}<div><dt>Size</dt><dd>{{ info.width }} &times; {{ info.height }}</dd></div>{% endif %}
+    <div><dt>Start positions</dt><dd>{{ info.players or "none found" }}</dd></div>
+    <div><dt>Type</dt><dd>{{ "Multiplayer" if info.is_multiplayer else "Single player / mission" }}</dd></div>
+    <div><dt>Sections</dt><dd>{{ info.section_count }}</dd></div>
+  </dl>
+
+  {% if info.forced_options %}
+  <p class="note warn">
+    This map already forces {{ info.forced_options|length }} lobby setting(s).
+    Applying an upgrade will overwrite the matching ones.
+  </p>
+  {% endif %}
+  {% if info.rules_overrides %}
+  <p class="note">
+    This map already carries {{ info.rules_overrides|length }} rules override section(s).
+  </p>
+  {% endif %}
+</section>
+
+<form action="/apply" method="post" class="card">
+  <input type="hidden" name="token" value="{{ token }}">
+  <h2>Choose your upgrades</h2>
+
+  {% for mod in mods %}
+  <fieldset class="mod">
+    <label class="mod-head">
+      <input type="checkbox" name="mods" value="{{ mod.id }}" checked>
+      <span>
+        <strong>{{ mod.name }}</strong>
+        <span class="mod-summary">{{ mod.summary }}</span>
+      </span>
+    </label>
+
+    <div class="mod-body">
+      {% for option in mod.options %}
+      <div class="option">
+        {% if option.kind == "bool" %}
+          <label>
+            <input type="checkbox" name="{{ option.id }}" value="1"
+                   {% if option.default == "1" %}checked{% endif %}>
+            {{ option.label }}
+          </label>
+        {% else %}
+          <label for="{{ option.id }}">{{ option.label }}</label>
+          <select id="{{ option.id }}" name="{{ option.id }}">
+            {% for choice in option.choices %}
+            <option value="{{ choice.value }}"
+                    {% if choice.value == option.default %}selected{% endif %}>
+              {{ choice.label }}
+            </option>
+            {% endfor %}
+          </select>
+        {% endif %}
+        {% if option.help %}<p class="help">{{ option.help }}</p>{% endif %}
+      </div>
+      {% endfor %}
+
+      {% if mod.caveat %}<p class="note warn">{{ mod.caveat }}</p>{% endif %}
+    </div>
+  </fieldset>
+  {% endfor %}
+
+  <button type="submit" class="primary">Apply and download</button>
+  <a class="secondary" href="/">Start over</a>
+</form>
+{% endblock %}

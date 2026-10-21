@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ site_name }}{% endblock %}</title>
+<meta name="description" content="Upload a Red Alert 2: Yuri's Revenge map and apply upgrades like auto-repair, maximum starting money and game speed.">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="/">{{ site_name }}</a>
+  <p class="tagline">Upgrade your Yuri&rsquo;s Revenge maps</p>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer>
+  <p>Works with <code>.map</code>, <code>.mpr</code> and <code>.yrm</code> files.
+     Uploads are deleted automatically after 30 minutes.</p>
+</footer>
+</body>
+</html>
