@@ -100,3 +100,18 @@ def test_token_cannot_be_reused(map_bytes):
     data = {"token": token, "mods": ["money"], "starting": "1", "credits": "0"}
     assert client.post("/apply", data=data).status_code == 200
     assert client.post("/apply", data=data).status_code == 410
+
+
+@pytest.mark.parametrize("uploaded, expected", [
+    ("island.map", "island [Edited].map"),
+    ("island.yrm", "island [Edited].yrm"),
+    ("island.mpr", "island [Edited].mpr"),
+    ("ISLAND.YRM", "ISLAND [Edited].YRM"),
+])
+def test_download_keeps_the_original_extension(map_bytes, uploaded, expected):
+    """A .yrm must come back as .yrm, or offline skirmish will not list it."""
+    token = _token_from(upload(map_bytes, uploaded).text)
+    response = client.post("/apply", data={
+        "token": token, "mods": ["money"], "income": "1", "rate": "steady",
+    })
+    assert expected in response.headers["content-disposition"]

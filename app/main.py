@@ -109,8 +109,13 @@ async def apply(request: Request, token: str = Form(...)):
 
     storage.discard(token)
 
+    # Keep the extension the map arrived with. .map is what the CnCNet
+    # client lists, while the stock game's skirmish screen wants .yrm for
+    # Yuri's Revenge and .mpr for Red Alert 2, so forcing one of them would
+    # leave half of users renaming the file by hand.
     stem = Path(filename).stem
-    download_name = f"{stem} [Edited].map"
+    suffix = Path(filename).suffix or ".map"
+    download_name = f"{stem} [Edited]{suffix}"
     return Response(
         content=ymap.to_bytes(),
         media_type="application/octet-stream",
