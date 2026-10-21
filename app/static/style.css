@@ -38,42 +38,6 @@
   color-scheme: dark;
 }
 
-/* Light theme. Applied when the visitor asks for it, or when their system
-   prefers light and they have not chosen otherwise. The red stays the same
-   hue but darkens, because the dark-mode red fails contrast on white. */
-:root[data-theme="light"] {
-  --bg:          #f4f4f7;
-  --bg-raise:    #ffffff;
-  --panel:       #ffffff;
-  --panel-soft:  #f0f0f4;
-  --edge:        #dcdce4;
-  --edge-soft:   #e7e7ee;
-
-  --red:         #d11a12;
-  --red-deep:    #a0120c;
-  --red-bright:  #c0170f;
-
-  --ink:         #15151b;
-  --ink-soft:    #3c3c47;
-  --muted:       #6b6b78;
-
-  --warn-bg:     #fdf4e3;
-  --warn-edge:   #d9a640;
-  --warn-ink:    #6b4e12;
-
-  --ok-bg:       #e3f4ea;
-  --ok-ink:      #1d6b3f;
-  --cn-bg:       #ece7fb;
-  --cn-ink:      #4b32a8;
-
-  --glow: #e6e6ec;
-  /* On white a red glow reads as a pink halo, so fade it to a soft shadow. */
-  --logo-glow: rgba(60, 60, 71, .16);
-  --heading-from: #15151b;
-  --shade: rgba(0,0,0,.035);
-  --code-bg: rgba(0,0,0,.07);
-  color-scheme: light;
-}
 
 * { box-sizing: border-box; }
 
@@ -571,37 +535,8 @@ code {
   * { transition: none !important; }
 }
 
-/* --------------------------------------------------------- theme toggle */
-
-.theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 11px 4px 9px;
-  border: 1px solid var(--edge);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: color .15s ease, border-color .15s ease;
-}
-.theme-toggle:hover { color: var(--ink); border-color: var(--muted); }
-.theme-toggle svg { width: 13px; height: 13px; }
-/* One icon shows at a time: the theme you would switch to. */
-.theme-toggle .to-light, :root[data-theme="light"] .theme-toggle .to-dark { display: none; }
-:root[data-theme="light"] .theme-toggle .to-light { display: block; }
-
 .topstrip-right { display: inline-flex; align-items: center; gap: 16px; }
 
-@media (max-width: 680px) {
-  .theme-toggle span { display: none; }
-  .theme-toggle { padding: 5px 8px; gap: 0; }
-}
 
 /* ------------------------------------------------------------ accounts */
 

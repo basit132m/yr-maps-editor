@@ -15,20 +15,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/style.css?v=14">
+<link rel="stylesheet" href="/static/style.css?v=15">
 <script>
-/* Set the theme before the first paint, or the page flashes dark then light. */
-(function () {
-  var root = document.documentElement;
-  root.classList.add('js');
-  try {
-    var saved = localStorage.getItem('yrme-theme');
-    if (saved === 'light' || saved === 'dark') { root.dataset.theme = saved; return; }
-  } catch (e) { /* private mode: fall through to the system preference */ }
-  if (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) {
-    root.dataset.theme = 'light';
-  }
-})();
+/* Marks that scripting is available, before the first paint, so the
+   upgrade panels start collapsed instead of flashing open. */
+document.documentElement.classList.add('js');
 </script>
 </head>
 <body>
@@ -39,19 +30,6 @@
     Map Upgrade Tool for Red Alert 2 &mdash; Yuri&rsquo;s Revenge
   </span>
   <span class="topstrip-right">
-    <button type="button" class="theme-toggle" data-theme-toggle
-            aria-label="Switch between light and dark theme">
-      <svg class="to-light" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="2" stroke-linecap="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="4.5"/>
-        <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/>
-      </svg>
-      <svg class="to-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z"/>
-      </svg>
-      <span>Theme</span>
-    </button>
     {# Accounts exist for the admin, not for visitors, so nothing here
        invites anyone to sign up. /signin still works if typed. #}
     {% if user %}
@@ -111,6 +89,6 @@
   <a href="https://www.bankofyrmaps.com/" target="_blank" rel="noopener">Bank of YR Maps</a>
 </p>
 
-<script src="/static/app.js?v=3" defer></script>
+<script src="/static/app.js?v=4" defer></script>
 </body>
 </html>

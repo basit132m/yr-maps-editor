@@ -221,3 +221,14 @@ def test_signing_in_still_works_when_typed():
     client.cookies.clear()
     assert client.get("/signin").status_code == 200
     assert client.get("/signup").status_code == 200
+
+
+def test_the_site_is_dark_only():
+    """One theme, so no toggle and nothing that could switch away from it."""
+    html = client.get("/").text
+    assert "theme-toggle" not in html
+    assert "prefers-color-scheme" not in html
+    assert 'data-theme' not in html
+    css = client.get("/static/style.css").text
+    assert "color-scheme: dark" in css
+    assert "color-scheme: light" not in css
