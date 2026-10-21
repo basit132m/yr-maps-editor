@@ -19,9 +19,28 @@
     Applying an upgrade will overwrite the matching ones.
   </p>
   {% endif %}
-  {% if info.rules_overrides %}
+  {% if info.heavily_modified %}
+  <p class="note warn">
+    <strong>This map is heavily modified.</strong> It carries
+    {{ info.gameplay_overrides|length }} gameplay rules override sections of its own, so it
+    is a conversion with balance the author tuned deliberately. Upgrades will
+    apply on top of that and may change how it plays.
+  </p>
+  {% elif info.rules_overrides %}
   <p class="note">
-    This map already carries {{ info.rules_overrides|length }} rules override section(s).
+    This map carries {{ info.rules_overrides|length }} rules override section(s)
+    of its own. Your upgrades are merged in alongside them.
+  </p>
+  {% endif %}
+
+  {% if info.existing_income %}
+  <p class="note warn">
+    <strong>This map already pays its players.</strong>
+    {% for section, amount in info.existing_income[:3] %}
+      <code>{{ section }}</code> pays {{ amount }}{% if not loop.last %}, {% endif %}
+    {% endfor %}{% if info.existing_income|length > 3 %} and
+    {{ info.existing_income|length - 3 }} more{% endif %}.
+    Adding income stacks on top of this.
   </p>
   {% endif %}
 </section>

@@ -17,6 +17,23 @@ MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 #: Start locations live in [Waypoints] under keys 0-7.
 START_WAYPOINTS = [str(n) for n in range(8)]
 
+#: Light-post types from rulesmd.ini's [BuildingTypes]. Maps retint these
+#: constantly to set a mood; it says nothing about how the map plays, so
+#: they do not count towards calling a map a conversion.
+LIGHTING_SECTIONS = frozenset({
+    "galite", "redlamp", "grenlamp", "bluelamp", "yelwlamp", "purplamp",
+    "inoranlamp", "ingrnlmp", "inredlmp", "inblulmp", "ingalite",
+    "inyelwlamp", "inpurplamp", "neglamp", "negred", "tstlamp",
+    "temmorlamp", "temdaylamp", "temduslamp", "temnitlamp",
+    "snomorlamp", "snodaylamp", "snoduslamp", "snonitlamp",
+})
+
+#: Above this many gameplay overrides a map is not a plain map any more but
+#: a conversion with its own balance. Drawn from a corpus of real maps,
+#: where ordinary ones carry under ten and conversions carry forty to two
+#: thousand.
+HEAVILY_MODIFIED_THRESHOLD = 25
+
 
 class MapError(ValueError):
     """The uploaded file is not a map this tool can safely edit."""
@@ -34,8 +51,19 @@ class MapInfo:
     has_terrain_data: bool
     forced_options: list[tuple[str, str]] = field(default_factory=list)
     rules_overrides: list[str] = field(default_factory=list)
+    #: (section, credits per payment) for buildings the map already pays from.
+    existing_income: list[tuple[str, str]] = field(default_factory=list)
     size_bytes: int = 0
     section_count: int = 0
+
+    @property
+    def gameplay_overrides(self) -> list[str]:
+        """Overrides that affect play, i.e. everything but lighting."""
+        return [s for s in self.rules_overrides if s.lower() not in LIGHTING_SECTIONS]
+
+    @property
+    def heavily_modified(self) -> bool:
+        return len(self.gameplay_overrides) >= HEAVILY_MODIFIED_THRESHOLD
 
 
 class YRMap:
@@ -148,6 +176,20 @@ class YRMap:
             if name.lower() not in known and not is_id_section(name)
         ]
 
+    def income_sources(self) -> list[tuple[str, str]]:
+        """Buildings the map already pays its players from.
+
+        Several community maps hand out credits through the engine's
+        ProduceCash rules. Adding more income stacks on top of these, which
+        is worth telling the user before they double a map's economy.
+        """
+        found = []
+        for name in self.ini.sections():
+            amount = self.ini.get(name, "ProduceCashAmount")
+            if amount and amount.strip() not in {"", "0"}:
+                found.append((name, amount.strip()))
+        return found
+
     def info(self) -> MapInfo:
         width, height = self.dimensions()
         return MapInfo(
@@ -161,6 +203,7 @@ class YRMap:
             has_terrain_data=self.ini.has_section("IsoMapPack5"),
             forced_options=self.ini.items("ForcedOptions"),
             rules_overrides=self.rules_override_sections(),
+            existing_income=self.income_sources(),
             size_bytes=len(self.ini.to_bytes()),
             section_count=len(self.ini.sections()),
         )

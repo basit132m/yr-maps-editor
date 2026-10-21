@@ -100,6 +100,25 @@ python3 tools/verify_corpus.py ~/maps -r -v      # against real map files
 `verify_corpus.py` exits non-zero if any map fails, so it can gate a deploy.
 Run it over a few hundred real maps before every release.
 
+It has been run over a corpus of twelve real community maps — `.map`, `.mpr`
+and `.yrm`, CRLF and LF, 147 KB to 890 KB, from plain multiplayer maps to a
+conversion carrying 2,227 gameplay overrides. All twelve round-trip
+byte-identically and take every upgrade without losing a key or introducing
+a duplicate.
+
+## What the analysis warns about
+
+Before applying anything, the map page flags two things the corpus showed
+matter:
+
+- **The map is heavily modified.** It carries 25 or more gameplay rules
+  overrides of its own, so it is a conversion whose balance the author tuned
+  deliberately. Light-post retints do not count, since maps change those for
+  mood rather than play.
+- **The map already pays its players.** Several community maps hand out
+  credits through `ProduceCash`, and adding income stacks on top. The warning
+  names the buildings and amounts so nobody doubles an economy by accident.
+
 ## Known limits
 
 - **Forced options need the CnCNet client.** Each one is badged in the UI.

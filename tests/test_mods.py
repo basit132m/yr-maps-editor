@@ -202,3 +202,46 @@ def test_no_duplicate_keys_are_introduced(modded_map_bytes, all_options):
     after = apply_all(modded_map_bytes, all_options).ini
     for section in after.sections():
         assert duplicate_count(after, section) == duplicate_count(before, section), section
+
+
+# -- warnings the analysis raises ------------------------------------------
+
+
+def test_plain_map_is_not_flagged_as_heavily_modified(map_bytes):
+    info = YRMap.load(map_bytes).info()
+    assert not info.heavily_modified
+    assert info.existing_income == []
+
+
+def test_conversion_is_flagged_as_heavily_modified(map_bytes):
+    from app.mapfile import HEAVILY_MODIFIED_THRESHOLD
+    extra = "".join(
+        f"\r\n[CUSTOM{n}]\r\nStrength=100\r\n"
+        for n in range(HEAVILY_MODIFIED_THRESHOLD)
+    ).encode("latin-1")
+    assert YRMap.load(map_bytes + extra).info().heavily_modified
+
+
+def test_existing_income_is_detected(map_bytes):
+    raw = map_bytes + (
+        b"\r\n[CAOILD]\r\nProduceCashAmount=750\r\nProduceCashDelay=100\r\n"
+    )
+    assert YRMap.load(raw).info().existing_income == [("CAOILD", "750")]
+
+
+def test_zero_income_is_not_reported(map_bytes):
+    raw = map_bytes + b"\r\n[CAOILD]\r\nProduceCashAmount=0\r\n"
+    assert YRMap.load(raw).info().existing_income == []
+
+
+def test_lighting_tweaks_do_not_count_as_a_conversion(map_bytes):
+    """Maps retint light posts for mood; that is not a gameplay change."""
+    from app.mapfile import LIGHTING_SECTIONS
+    extra = "".join(
+        f"\r\n[{name.upper()}]\r\nLightIntensity=0.01\r\nLightVisibility=2500\r\n"
+        for name in LIGHTING_SECTIONS
+    ).encode("latin-1")
+    info = YRMap.load(map_bytes + extra).info()
+    assert len(info.rules_overrides) == len(LIGHTING_SECTIONS)
+    assert info.gameplay_overrides == []
+    assert not info.heavily_modified
