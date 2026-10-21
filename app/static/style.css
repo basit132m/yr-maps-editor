@@ -29,6 +29,48 @@
 
   --radius: 12px;
   --wrap: 880px;
+
+  --glow: #18181d;
+  --logo-glow: rgba(226, 35, 26, .22);
+  --shade: rgba(255,255,255,.035);
+  --code-bg: rgba(255,255,255,.08);
+  color-scheme: dark;
+}
+
+/* Light theme. Applied when the visitor asks for it, or when their system
+   prefers light and they have not chosen otherwise. The red stays the same
+   hue but darkens, because the dark-mode red fails contrast on white. */
+:root[data-theme="light"] {
+  --bg:          #f4f4f7;
+  --bg-raise:    #ffffff;
+  --panel:       #ffffff;
+  --panel-soft:  #f0f0f4;
+  --edge:        #dcdce4;
+  --edge-soft:   #e7e7ee;
+
+  --red:         #d11a12;
+  --red-deep:    #a0120c;
+  --red-bright:  #c0170f;
+
+  --ink:         #15151b;
+  --ink-soft:    #3c3c47;
+  --muted:       #6b6b78;
+
+  --warn-bg:     #fdf4e3;
+  --warn-edge:   #d9a640;
+  --warn-ink:    #6b4e12;
+
+  --ok-bg:       #e3f4ea;
+  --ok-ink:      #1d6b3f;
+  --cn-bg:       #ece7fb;
+  --cn-ink:      #4b32a8;
+
+  --glow: #e6e6ec;
+  /* On white a red glow reads as a pink halo, so fade it to a soft shadow. */
+  --logo-glow: rgba(60, 60, 71, .16);
+  --shade: rgba(0,0,0,.035);
+  --code-bg: rgba(0,0,0,.07);
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -39,7 +81,7 @@ body {
   margin: 0;
   padding: 0 20px 80px;
   background:
-    radial-gradient(1200px 600px at 50% -200px, #18181d 0%, transparent 70%),
+    radial-gradient(1200px 600px at 50% -200px, var(--glow) 0%, transparent 70%),
     var(--bg);
   color: var(--ink);
   font: 16px/1.65 Archivo, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -101,7 +143,7 @@ a { color: var(--red-bright); }
   max-width: 620px;
   height: auto;
   margin: 0 auto 26px;
-  filter: drop-shadow(0 10px 34px rgba(226, 35, 26, .22));
+  filter: drop-shadow(0 10px 34px var(--logo-glow));
 }
 
 .hero-sub {
@@ -234,7 +276,7 @@ a { color: var(--red-bright); }
   cursor: pointer;
   transition: border-color .15s ease, background .15s ease;
 }
-.dropzone:hover { border-color: var(--red); background: #1d1419; }
+.dropzone:hover { border-color: var(--red); background: var(--shade); }
 .dropzone-icon {
   display: block;
   width: 42px; height: 42px;
@@ -351,10 +393,10 @@ a { color: var(--red-bright); }
   margin: 0 0 14px;
   transition: border-color .18s ease, background .18s ease;
 }
-.mod:hover { border-color: #33333d; }
+.mod:hover { border-color: var(--muted); }
 .mod.is-open {
   border-color: rgba(226, 35, 26, .55);
-  background: linear-gradient(180deg, #1a1416 0%, var(--panel) 120px);
+  background: linear-gradient(180deg, var(--shade) 0%, var(--panel) 120px);
 }
 
 .mod-head {
@@ -473,7 +515,7 @@ a { color: var(--red-bright); }
 .note {
   margin: 16px 0 0;
   padding: 13px 16px;
-  background: rgba(255,255,255,.035);
+  background: var(--shade);
   border-left: 3px solid var(--edge);
   border-radius: 0 8px 8px 0;
   color: var(--muted);
@@ -485,7 +527,7 @@ a { color: var(--red-bright); }
 code {
   padding: 1px 6px;
   border-radius: 5px;
-  background: rgba(255,255,255,.08);
+  background: var(--code-bg);
   font-size: .92em;
 }
 
@@ -525,4 +567,36 @@ code {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   * { transition: none !important; }
+}
+
+/* --------------------------------------------------------- theme toggle */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px 4px 9px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease;
+}
+.theme-toggle:hover { color: var(--ink); border-color: var(--muted); }
+.theme-toggle svg { width: 13px; height: 13px; }
+/* One icon shows at a time: the theme you would switch to. */
+.theme-toggle .to-light, :root[data-theme="light"] .theme-toggle .to-dark { display: none; }
+:root[data-theme="light"] .theme-toggle .to-light { display: block; }
+
+.topstrip-right { display: inline-flex; align-items: center; gap: 16px; }
+
+@media (max-width: 680px) {
+  .theme-toggle span { display: none; }
+  .theme-toggle { padding: 5px 8px; gap: 0; }
 }

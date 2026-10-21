@@ -4,6 +4,18 @@
 (function () {
   "use strict";
 
+  /* The theme itself is applied by an inline script in the head so the page
+     never flashes; this only handles the button. */
+  var root = document.documentElement;
+  var toggle = document.querySelector("[data-theme-toggle]");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var next = root.dataset.theme === "light" ? "dark" : "light";
+      root.dataset.theme = next;
+      try { localStorage.setItem("yrme-theme", next); } catch (e) { /* ignore */ }
+    });
+  }
+
   var form = document.querySelector("form[action='/apply']");
   if (!form) return;
 
