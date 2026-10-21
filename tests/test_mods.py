@@ -146,3 +146,59 @@ def test_build_speed_can_be_left_alone(map_bytes):
     ymap = YRMap.load(map_bytes)
     BY_ID["game_speed"].apply(ymap, {"speed": "normal", "build_speed": "normal"})
     assert ymap.ini.get("General", "BuildSpeed") is None
+
+
+# -- merging into maps that already carry rules overrides --------------------
+
+
+def test_existing_general_keys_survive(modded_map_bytes, all_options):
+    ini = apply_all(modded_map_bytes, all_options).ini
+    assert ini.get("General", "GrowthRate") == "1"
+    assert ini.get("General", "RepairPercent") == "0%"
+
+
+def test_existing_build_speed_is_replaced_not_duplicated(modded_map_bytes, all_options):
+    ini = apply_all(modded_map_bytes, all_options).ini
+    assert ini.get("General", "BuildSpeed") == "0.35"
+    assert [k for k, _ in ini.items("General")].count("BuildSpeed") == 1
+
+
+def test_building_keeps_its_tuning_when_given_self_healing(modded_map_bytes, all_options):
+    ini = apply_all(modded_map_bytes, all_options).ini
+    for section in ("GACNST", "GAGATE_A"):
+        assert ini.get(section, "Strength") == "1000", section
+        assert ini.get(section, "SelfHealing") == "yes", section
+
+
+def test_another_buildings_income_is_left_alone(modded_map_bytes, all_options):
+    """Income goes on Construction Yards; a map's own Oil Derrick tuning stays."""
+    ini = apply_all(modded_map_bytes, all_options).ini
+    assert ini.get("CAOILD", "ProduceCashAmount") == "100"
+    assert ini.get("CAOILD", "ProduceCashDelay") == "100"
+
+
+def test_no_key_is_ever_lost(modded_map_bytes, all_options):
+    before = IniFile.from_bytes(modded_map_bytes)
+    after = apply_all(modded_map_bytes, all_options).ini
+    for section in before.sections():
+        missing = {k.lower() for k, _ in before.items(section)} - {
+            k.lower() for k, _ in after.items(section)
+        }
+        assert not missing, (section, missing)
+
+
+def test_no_duplicate_keys_are_introduced(modded_map_bytes, all_options):
+    """Upgrades add no repeated key.
+
+    Maps in the wild do contain duplicates already — the engine honours the
+    first — so this compares against the original rather than demanding the
+    output be free of them.
+    """
+    def duplicate_count(ini, section):
+        keys = [k.lower() for k, _ in ini.items(section)]
+        return len(keys) - len(set(keys))
+
+    before = IniFile.from_bytes(modded_map_bytes)
+    after = apply_all(modded_map_bytes, all_options).ini
+    for section in after.sections():
+        assert duplicate_count(after, section) == duplicate_count(before, section), section

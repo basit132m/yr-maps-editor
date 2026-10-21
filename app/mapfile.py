@@ -129,6 +129,7 @@ class YRMap:
             "forcedoptions", "globalvariables", "briefing", "multimaps", "tutorial",
             "header", "authorinformation", "scripttypes", "smudge", "special",
             "aircrafttypes", "infantrytypes", "vehicletypes", "buildingtypes",
+            "fa2spversioncontrol", "aitriggertypesenable", "digest",
         }
         # FinalAlert writes a section per country, and one per team type /
         # script / task force keyed by its eight-digit ID. Neither is a

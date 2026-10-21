@@ -70,3 +70,26 @@ def all_options() -> dict[str, str]:
         "build_speed": "fast",
         "lock": "1",
     }
+
+
+@pytest.fixture
+def modded_map_bytes(map_bytes) -> bytes:
+    """A map that already carries rules overrides, as real maps do.
+
+    Modelled on community maps that ship their own [General], tuned
+    buildings and an existing BuildSpeed, so upgrades must merge into
+    them rather than replace them.
+    """
+    return map_bytes + (
+        "\r\n[General]\r\n"
+        "BuildSpeed=0.7\r\n"
+        "GrowthRate=1\r\n"
+        "RepairPercent=0%\r\n"
+        "\r\n[GACNST]\r\n"
+        "Strength=1000\r\n"
+        "\r\n[GAGATE_A]\r\n"
+        "Strength=1000\r\n"
+        "\r\n[CAOILD]\r\n"
+        "ProduceCashAmount=100\r\n"
+        "ProduceCashDelay=100\r\n"
+    ).encode("latin-1")
