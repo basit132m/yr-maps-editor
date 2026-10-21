@@ -203,10 +203,37 @@ def test_the_configured_address_becomes_admin():
     assert accounts.authenticate(ADMIN_EMAIL, "a good password").is_admin
 
 
-def test_removing_the_address_takes_admin_away(monkeypatch):
+def test_replacing_the_address_takes_admin_away(monkeypatch):
+    become_admin()
+    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", ("someoneelse@gmail.com",))
+    assert not accounts.authenticate(ADMIN_EMAIL, "a good password").is_admin
+
+
+def test_an_empty_config_leaves_the_database_alone(monkeypatch):
+    """So a flag set by tools/make_admin.py is not wiped on the next page
+    load when the environment variable never arrived."""
     become_admin()
     monkeypatch.setattr("app.accounts.ADMIN_EMAILS", ())
-    assert not accounts.authenticate(ADMIN_EMAIL, "a good password").is_admin
+    assert accounts.authenticate(ADMIN_EMAIL, "a good password").is_admin
+    assert client.get("/admin").status_code == 200
+
+
+def test_admin_can_be_granted_without_any_configuration(monkeypatch):
+    """The escape hatch: no environment variable involved at all."""
+    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", ())
+    become_admin()
+    assert client.get("/admin").status_code == 403
+
+    accounts.grant_admin(ADMIN_EMAIL)
+    assert client.get("/admin").status_code == 200    # same session
+
+    accounts.grant_admin(ADMIN_EMAIL, admin=False)
+    assert client.get("/admin").status_code == 403
+
+
+def test_granting_admin_to_a_missing_account_says_so(monkeypatch):
+    with pytest.raises(accounts.AccountError):
+        accounts.grant_admin("nobodyhere@gmail.com")
 
 
 def test_the_admin_can_answer_a_report():
@@ -296,12 +323,25 @@ def test_losing_admin_also_applies_at_once(monkeypatch):
     monkeypatch.setattr("app.accounts.ADMIN_EMAILS", (ADMIN_EMAIL,))
     become_admin()
     assert client.get("/admin").status_code == 200
-    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", ())
+    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", ("someoneelse@gmail.com",))
     assert client.get("/admin").status_code == 403
 
 
-def test_the_refusal_says_what_to_do_about_it():
+def test_the_refusal_names_the_account_and_the_reason(monkeypatch):
+    """A refusal that says only 'you may not' leaves someone stuck."""
+    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", ())
     become_ordinary_user()
     page = client.get("/admin").text
-    assert "YRME_ADMIN_EMAILS" in page
+    assert "someoneelse@gmail.com" in page          # which account it is
+    assert "no admin addresses configured" in page  # why
+    assert "make_admin.py" in page                  # what to do
     assert "Try another file" not in page
+
+
+def test_the_refusal_never_lists_the_admin_addresses(monkeypatch):
+    """Any signed-in visitor can reach it, so it reports a count only."""
+    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", (ADMIN_EMAIL,))
+    become_ordinary_user()
+    page = client.get("/admin").text
+    assert ADMIN_EMAIL not in page
+    assert "1 admin address" in page

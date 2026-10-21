@@ -57,10 +57,23 @@ def require_admin(request: Request):
         return user, None
     if user is None:
         return None, RedirectResponse("/signin", status_code=303)
+    configured = accounts.admin_emails()
+    if not configured:
+        why = ("The server has no admin addresses configured, so nobody can "
+               "open this area. Either set YRME_ADMIN_EMAILS in .env and run "
+               "'docker compose up -d', or grant it directly with "
+               "'docker compose exec app python3 tools/make_admin.py " 
+               f"{user.email}'.")
+    else:
+        # The count, never the addresses: any signed-in visitor sees this.
+        why = (f"The server has {len(configured)} admin address"
+               f"{'' if len(configured) == 1 else 'es'} configured, and this "
+               "account is not one of them. The configured address has to "
+               f"match {user.email} once Gmail's dots and +tags are removed.")
     return None, error_page(
         request,
-        "You are signed in, but this account is not an administrator. "
-        "Add its address to YRME_ADMIN_EMAILS and reload.",
+        f"You are signed in as {user.email}, but it is not an administrator. "
+        + why,
         403, action_label="Back to the tool", action_href="/")
 
 

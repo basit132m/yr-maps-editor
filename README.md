@@ -222,10 +222,24 @@ throttled without throttling everyone.
   30 while closed, and stops entirely when the tab is hidden.
 
 **Only the admin panel needs a login.** `YRME_ADMIN_EMAILS` lists the
-addresses that get it, so the first admin is made by signing up rather
-than by a console step, and removing an address takes the flag away on
-next sign-in. Tests cover a stranger, an ordinary signed-in user and the
-admin against every admin route, including the ones that write.
+addresses that get it, re-checked on every page load so a change takes
+effect immediately. Tests cover a stranger, an ordinary signed-in user
+and the admin against every admin route, including the ones that write.
+
+That environment variable has several ways to quietly not arrive — the
+line missing from `.env`, the container restarted rather than recreated
+so it never re-read it, or an address that does not reduce to the same
+Gmail mailbox. So there is a route that does not depend on it:
+
+```bash
+docker compose exec app python3 tools/make_admin.py            # what is set, who exists
+docker compose exec app python3 tools/make_admin.py you@gmail.com
+```
+
+When no addresses are configured the flag in the database is left alone,
+which is what lets a grant made this way survive. When addresses *are*
+configured they win, so normal operation is still driven from the
+environment.
 
 ## Known limits
 

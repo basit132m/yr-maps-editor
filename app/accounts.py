@@ -148,7 +148,12 @@ def _sync_admin(conn, row: sqlite3.Row) -> sqlite3.Row:
     flag away again, so access is controlled from the environment rather
     than by editing the database.
     """
-    should_be = 1 if row["email"] in admin_emails() else 0
+    configured = admin_emails()
+    if not configured:
+        # Nothing configured: leave whatever is in the database alone, so a
+        # flag set by tools/make_admin.py survives.
+        return row
+    should_be = 1 if row["email"] in configured else 0
     if row["is_admin"] != should_be:
         conn.execute("UPDATE users SET is_admin = ? WHERE id = ?",
                      (should_be, row["id"]))
@@ -198,6 +203,30 @@ def authenticate(email: str, password: str) -> User:
     with db.transaction() as conn:
         row = _sync_admin(conn, row)
     return _row_to_user(row)
+
+
+def grant_admin(email: str, admin: bool = True) -> User:
+    """Set the admin flag directly, whatever the configuration says.
+
+    The escape hatch for when the environment variable has not reached the
+    container: there is always a way in that does not depend on it.
+    """
+    canonical = canonical_email(email)
+    with db.transaction() as conn:
+        row = conn.execute("SELECT * FROM users WHERE email = ?",
+                           (canonical,)).fetchone()
+        if row is None:
+            raise AccountError(f"No account exists for {canonical}.")
+        conn.execute("UPDATE users SET is_admin = ? WHERE id = ?",
+                     (1 if admin else 0, row["id"]))
+        row = conn.execute("SELECT * FROM users WHERE id = ?", (row["id"],)).fetchone()
+    return _row_to_user(row)
+
+
+def everyone() -> list[User]:
+    with db.transaction() as conn:
+        rows = conn.execute("SELECT * FROM users ORDER BY id").fetchall()
+    return [_row_to_user(row) for row in rows]
 
 
 def set_name(user_id: int, name: str) -> None:
