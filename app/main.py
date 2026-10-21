@@ -13,6 +13,7 @@ from . import storage
 from .config import SITE_NAME
 from .mapfile import ALLOWED_EXTENSIONS, MAX_UPLOAD_BYTES, MapError, YRMap
 from .mods import BY_ID, REGISTRY
+from .preview import render_png
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -68,6 +69,34 @@ async def upload(request: Request, mapfile: UploadFile):
         filename=filename,
         info=ymap.info(),
         mods=REGISTRY,
+    )
+
+
+@app.get("/preview/{token}.png")
+def preview(token: str):
+    """The map's own embedded minimap, decoded from the uploaded file.
+
+    Nothing from the game's data files is involved, so no assets have to
+    be shipped or licensed.
+    """
+    try:
+        data, filename = storage.load(token)
+    except storage.StorageError:
+        return Response(status_code=404)
+
+    try:
+        ymap = YRMap.load(data, filename)
+    except MapError:
+        return Response(status_code=404)
+
+    png = render_png(ymap.ini)
+    if png is None:
+        return Response(status_code=404)
+
+    return Response(
+        content=png,
+        media_type="image/png",
+        headers={"Cache-Control": "private, max-age=1800"},
     )
 
 

@@ -283,6 +283,31 @@ a { color: var(--red-bright); }
 .card h3 { margin: 0 0 8px; font-size: 17px; font-weight: 800; }
 .card p { margin: 0 0 14px; color: var(--muted); font-size: 14.5px; }
 
+/* ------------------------------------------------------------ preview */
+
+.preview { margin: 0 0 26px; text-align: center; }
+.preview img {
+  display: block;
+  max-width: 100%;
+  width: auto;
+  max-height: 340px;
+  margin: 0 auto;
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  background: var(--bg);
+  /* A minimap is a handful of pixels per cell; smoothing it turns the
+     terrain to mush, so keep the edges hard. */
+  image-rendering: pixelated;
+}
+.preview figcaption {
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 /* -------------------------------------------------------------- facts */
 
 .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; margin: 0; }

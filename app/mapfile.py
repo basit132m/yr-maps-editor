@@ -49,6 +49,7 @@ class MapInfo:
     players: int
     is_multiplayer: bool
     has_terrain_data: bool
+    has_preview: bool
     forced_options: list[tuple[str, str]] = field(default_factory=list)
     rules_overrides: list[str] = field(default_factory=list)
     #: (section, credits per payment) for buildings the map already pays from.
@@ -176,6 +177,23 @@ class YRMap:
             if name.lower() not in known and not is_id_section(name)
         ]
 
+    def has_preview(self) -> bool:
+        """Whether the map carries a minimap image we could decode.
+
+        Only checks that the pieces are present; decoding happens when the
+        image is actually requested.
+        """
+        if not self.ini.has_section("PreviewPack"):
+            return False
+        size = self.ini.get("Preview", "Size") or ""
+        parts = [p.strip() for p in size.split(",")]
+        if len(parts) < 4:
+            return False
+        try:
+            return int(parts[2]) > 0 and int(parts[3]) > 0
+        except ValueError:
+            return False
+
     def income_sources(self) -> list[tuple[str, str]]:
         """Buildings the map already pays its players from.
 
@@ -201,6 +219,7 @@ class YRMap:
             players=self.player_count(),
             is_multiplayer=self.is_multiplayer(),
             has_terrain_data=self.ini.has_section("IsoMapPack5"),
+            has_preview=self.has_preview(),
             forced_options=self.ini.items("ForcedOptions"),
             rules_overrides=self.rules_override_sections(),
             existing_income=self.income_sources(),

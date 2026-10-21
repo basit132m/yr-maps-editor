@@ -94,3 +94,33 @@ def modded_map_bytes(map_bytes) -> bytes:
         "ProduceCashAmount=100\r\n"
         "ProduceCashDelay=100\r\n"
     ).encode("latin-1")
+
+
+@pytest.fixture
+def real_preview_map(map_bytes) -> bytes:
+    """A map whose [PreviewPack] really decodes.
+
+    Built here rather than shipped: a tiny image is compressed with the
+    one LZO1X construct the decoder needs for it -- a literal run -- and
+    framed in the chunk header the game uses.
+    """
+    import base64
+    import struct
+
+    width, height = 4, 2
+    pixels = bytes([0x20, 0x40, 0x80] * (width * height))
+
+    # At the start of an LZO1X stream a token above 17 means (token - 17)
+    # literal bytes; 0x11 0x00 0x00 is the end-of-stream marker.
+    body = bytes([len(pixels) + 17]) + pixels + b"\x11\x00\x00"
+    chunk = struct.pack("<HH", len(body), len(pixels)) + body
+    packed = base64.b64encode(chunk).decode()
+
+    lines = "\r\n".join(
+        f"{i + 1}={packed[i * 70:(i + 1) * 70]}"
+        for i in range((len(packed) + 69) // 70)
+    )
+    return map_bytes + (
+        f"\r\n[Preview]\r\nSize=0,0,{width},{height}\r\n"
+        f"\r\n[PreviewPack]\r\n{lines}\r\n"
+    ).encode("latin-1")

@@ -9,6 +9,14 @@
 </section>
 
 <section class="panel">
+  {% if info.has_preview %}
+  <figure class="preview">
+    <img src="/preview/{{ token }}.png" alt="Minimap of {{ info.name }}"
+         loading="lazy" onerror="this.closest('.preview').remove()">
+    <figcaption>The map&rsquo;s own preview image</figcaption>
+  </figure>
+  {% endif %}
+
   <dl class="facts">
     <div><dt>Author</dt><dd>{{ info.author }}</dd></div>
     <div><dt>Theater</dt><dd>{{ info.theater|title }}</dd></div>

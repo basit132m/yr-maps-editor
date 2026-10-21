@@ -108,12 +108,30 @@ a map with no edits returns a byte-identical file, and that property is
 enforced by the test suite. Terrain cannot be corrupted by an upgrade, because
 no upgrade ever writes to those sections.
 
+## The map preview
+
+Every map carries its own minimap: `[Preview]` gives the dimensions and
+`[PreviewPack]` holds the pixels, base64 over numbered lines and
+compressed with LZO1X — the same scheme `IsoMapPack5` uses, in the same
+chunked frame of two 16-bit sizes per block. Expanded it is three bytes
+per pixel.
+
+That means the preview can be shown **without any game assets**. Renderers
+like CNCMaps and LightningMap draw a map from the game's own `.mix` files;
+this reads an image the map already contains, so there is nothing to ship
+or license. `app/preview.py` decodes it and writes a PNG with `zlib`
+alone, so there is no imaging library in the dependency list either.
+
+Worst case in the test corpus is 41 ms for a 328x164 preview, which is
+fine to serve on request.
+
 ## Layout
 
 ```
 app/
   inifile.py     byte-faithful INI reader/writer — the core guarantee
   mapfile.py     map model, validation, the facts shown in the UI
+  preview.py     LZO1X decoder + PNG writer for the embedded minimap
   storage.py     short-lived upload store with TTL cleanup
   main.py        FastAPI routes
   mods/          one module per upgrade

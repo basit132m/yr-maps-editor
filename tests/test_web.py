@@ -162,3 +162,28 @@ def test_picker_is_only_presentation(map_bytes):
     assert edited.ini.get("GACNST", "ProduceCashAmount") is None
     assert edited.ini.get("General", "BuildSpeed") is None
     assert edited.ini.get("General", "RepairPercent") is None
+
+
+# -- the embedded map preview ------------------------------------------------
+
+
+def test_preview_is_shown_and_served(map_bytes, real_preview_map):
+    html = upload(real_preview_map, "preview.yrm").text
+    assert "/preview/" in html
+
+    token = _token_from(html)
+    response = client.get(f"/preview/{token}.png")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    assert response.content.startswith(b"\x89PNG\r\n\x1a\n")
+
+
+def test_map_without_a_preview_shows_none(map_bytes):
+    """The fixture has no [PreviewPack], so no image is offered."""
+    html = upload(map_bytes).text
+    assert "/preview/" not in html
+
+
+def test_preview_rejects_a_bad_token():
+    assert client.get("/preview/../../etc/passwd.png").status_code == 404
+    assert client.get("/preview/" + "f" * 32 + ".png").status_code == 404
