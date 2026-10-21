@@ -154,7 +154,7 @@ ADMIN_PAGES = ["/admin", "/admin/reports", "/admin/chats"]
 def test_a_stranger_is_sent_to_sign_in(path):
     response = client.get(path, follow_redirects=False)
     assert response.status_code == 303
-    assert response.headers["location"] == "/signin"
+    assert response.headers["location"] == f"/signin?next={path}"
 
 
 @pytest.mark.parametrize("path", ADMIN_PAGES)
