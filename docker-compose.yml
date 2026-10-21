@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     env_file: .env
     volumes:
-      - uploads:/var/lib/yrme
+      - data:/var/lib/yrme
     expose:
       - "8000"
 
@@ -23,6 +23,6 @@ services:
       - caddy_config:/config
 
 volumes:
-  uploads:
+  data:
   caddy_data:
   caddy_config:

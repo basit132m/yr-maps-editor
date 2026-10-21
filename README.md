@@ -133,6 +133,8 @@ app/
   mapfile.py     map model, validation, the facts shown in the UI
   preview.py     LZO1X decoder + PNG writer for the embedded minimap
   storage.py     short-lived upload store with TTL cleanup
+  db.py          SQLite schema, applied on start
+  accounts.py    Gmail-only registration, scrypt passwords, sessions
   main.py        FastAPI routes
   mods/          one module per upgrade
 tools/
@@ -184,6 +186,26 @@ matter:
   credits through `ProduceCash`, and adding income stacks on top. The warning
   names the buildings and amounts so nobody doubles an economy by accident.
 
+## Accounts
+
+Registration is limited to Gmail, which needs more care than a domain
+check. Gmail ignores dots in the local part and everything after a `+`,
+and `googlemail.com` is the same mailbox as `gmail.com`. So
+`John.Smith+yr@googlemail.com` and `johnsmith@gmail.com` are one person.
+Each address is reduced to a canonical form for lookups while the address
+as typed is kept for display, which stops one person registering twice and
+stops anyone claiming an address that already exists under an alias.
+
+Passwords use `scrypt` from the standard library, so there is no password
+library in the dependency list. Session cookies are random tokens and only
+their hash reaches the database, so a copy of the file does not hand
+anyone a working session. Changing a password drops every session.
+
+**Signing in is optional.** `YRME_REQUIRE_LOGIN` gates editing, and it
+defaults to off. The tool takes about half a minute to use, and a forced
+signup costs more visitors than it gains; turn it on when the account
+features are worth the friction.
+
 ## Known limits
 
 - **Forced options need the CnCNet client.** Each one is badged in the UI.
@@ -196,5 +218,8 @@ matter:
 - **Everyone needs the same file.** Editing a map changes it, so every player
   in a match must have the edited copy. The tool renames the map to
   `... [Edited]` so it is easy to tell the versions apart.
+- **Email addresses are not verified.** Nothing confirms the person owns
+  the address they registered, so treat it as a contact field rather than
+  proof of identity until sending mail is set up.
 - **Map packages (`.mmx`, `.yro`) are not supported.** Extract the `.mpr` or
   `.yrm` from them with XCC Mixer first.

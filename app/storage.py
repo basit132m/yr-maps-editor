@@ -11,7 +11,7 @@ import re
 import secrets
 import time
 
-from .config import UPLOAD_TTL_SECONDS, WORK_DIR
+from .config import UPLOAD_DIR, UPLOAD_TTL_SECONDS
 
 TOKEN_RE = re.compile(r"^[0-9a-f]{32}$")
 
@@ -21,28 +21,28 @@ class StorageError(Exception):
 
 
 def _ensure_dir() -> None:
-    WORK_DIR.mkdir(parents=True, exist_ok=True)
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def store(data: bytes, filename: str) -> str:
     _ensure_dir()
     sweep()
     token = secrets.token_hex(16)
-    (WORK_DIR / f"{token}.map").write_bytes(data)
-    (WORK_DIR / f"{token}.name").write_text(filename[:200], encoding="utf-8")
+    (UPLOAD_DIR / f"{token}.map").write_bytes(data)
+    (UPLOAD_DIR / f"{token}.name").write_text(filename[:200], encoding="utf-8")
     return token
 
 
 def load(token: str) -> tuple[bytes, str]:
     if not TOKEN_RE.match(token or ""):
         raise StorageError("That upload link is not valid. Please upload the map again.")
-    payload = WORK_DIR / f"{token}.map"
+    payload = UPLOAD_DIR / f"{token}.map"
     if not payload.exists():
         raise StorageError(
             "Your upload has expired. Uploads are deleted after 30 minutes — "
             "please upload the map again."
         )
-    name_file = WORK_DIR / f"{token}.name"
+    name_file = UPLOAD_DIR / f"{token}.name"
     original = name_file.read_text(encoding="utf-8") if name_file.exists() else "map.map"
     return payload.read_bytes(), original
 
@@ -51,16 +51,16 @@ def discard(token: str) -> None:
     if not TOKEN_RE.match(token or ""):
         return
     for suffix in (".map", ".name"):
-        (WORK_DIR / f"{token}{suffix}").unlink(missing_ok=True)
+        (UPLOAD_DIR / f"{token}{suffix}").unlink(missing_ok=True)
 
 
 def sweep() -> int:
     """Delete uploads older than the TTL. Returns how many files went."""
-    if not WORK_DIR.exists():
+    if not UPLOAD_DIR.exists():
         return 0
     cutoff = time.time() - UPLOAD_TTL_SECONDS
     removed = 0
-    for path in WORK_DIR.iterdir():
+    for path in UPLOAD_DIR.iterdir():
         try:
             if path.is_file() and path.stat().st_mtime < cutoff:
                 path.unlink(missing_ok=True)

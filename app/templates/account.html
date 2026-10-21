@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Your account &mdash; {{ site_name }}{% endblock %}
+{% block content %}
+<section class="page-head">
+  <p class="eyebrow">Your account</p>
+  <h1>{{ user.display_name }}</h1>
+</section>
+
+<section class="panel">
+  <div class="identity">
+    <span class="avatar avatar-lg" aria-hidden="true">{{ user.initials }}</span>
+    <div>
+      <p class="identity-email">{{ user.email_display }}</p>
+      {% if user.is_admin %}<span class="tag tag-cncnet">Admin</span>{% endif %}
+    </div>
+  </div>
+</section>
+
+{% if request.query_params.get("saved") == "name" %}
+<p class="note ok">Your name has been saved.</p>
+{% elif request.query_params.get("saved") == "password" %}
+<p class="note ok">Your password has been changed. Other devices were signed out.</p>
+{% endif %}
+{% if error %}<p class="note warn">{{ error }}</p>{% endif %}
+
+<section class="panel">
+  <h2>Display name</h2>
+  <form action="/account/name" method="post" class="stack">
+    <div class="field">
+      <label for="name">What we should call you</label>
+      <input id="name" name="name" type="text" value="{{ user.name }}" maxlength="40">
+    </div>
+    <button type="submit" class="btn"><span>Save name</span></button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Password</h2>
+  <form action="/account/password" method="post" class="stack">
+    <div class="field">
+      <label for="current">Current password</label>
+      <input id="current" name="current" type="password"
+             autocomplete="current-password" required>
+    </div>
+    <div class="field">
+      <label for="new_password">New password</label>
+      <input id="new_password" name="new_password" type="password"
+             autocomplete="new-password" minlength="8" required>
+      <p class="help">At least 8 characters. Your other devices will be signed out.</p>
+    </div>
+    <button type="submit" class="btn"><span>Change password</span></button>
+  </form>
+</section>
+
+<form action="/signout" method="post" class="form-actions">
+  <button type="submit" class="btn-ghost signout">Sign out</button>
+</form>
+{% endblock %}

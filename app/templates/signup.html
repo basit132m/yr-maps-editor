@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Create an account &mdash; {{ site_name }}{% endblock %}
+{% block content %}
+<section class="page-head narrow">
+  <p class="eyebrow">Your account</p>
+  <h1>Create an account</h1>
+  <p class="page-head-sub">
+    So you can report a problem, ask for a feature, and talk to us directly.
+  </p>
+</section>
+
+<section class="panel narrow">
+  {% if error %}<p class="note warn">{{ error }}</p>{% endif %}
+
+  <form action="/signup" method="post" class="stack">
+    <div class="field">
+      <label for="email">Gmail address</label>
+      <input id="email" name="email" type="email" autocomplete="username"
+             value="{{ email or '' }}" placeholder="you@gmail.com" required autofocus>
+      <p class="help">Only @gmail.com addresses can be used here.</p>
+    </div>
+    <div class="field">
+      <label for="name">Display name <span class="optional">optional</span></label>
+      <input id="name" name="name" type="text" autocomplete="nickname"
+             value="{{ name or '' }}" maxlength="40" placeholder="What we should call you">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password"
+             autocomplete="new-password" minlength="8" required>
+      <p class="help">At least 8 characters.</p>
+    </div>
+    <button type="submit" class="btn btn-block"><span>Create account</span></button>
+  </form>
+
+  <p class="switch">Already have one? <a href="/signin">Sign in</a></p>
+</section>
+{% endblock %}
