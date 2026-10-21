@@ -321,3 +321,41 @@ def test_build_speed_values_match_what_real_maps_use(map_bytes):
     for value in BUILD_SPEED_MAP.values():
         if value is not None:
             assert 0.1 <= float(value) < 0.7
+
+
+# -- author credit -----------------------------------------------------------
+
+
+def test_a_credited_author_is_kept(map_bytes):
+    info = YRMap.load(map_bytes).info()
+    assert info.author == "Westwood"
+    assert info.author_known
+
+
+@pytest.mark.parametrize("value", [
+    "", "   ", "Author Not Set", "author not set", "unknown", "None",
+    "<none>", "n/a", "-",
+])
+def test_placeholder_authors_count_as_uncredited(map_bytes, value):
+    """FinalAlert writes 'Author Not Set' by default; it names nobody."""
+    raw = map_bytes.replace(b"Author=Westwood", f"Author={value}".encode("latin-1"))
+    info = YRMap.load(raw).info()
+    assert not info.author_known
+    assert info.author == ""
+
+
+def test_a_missing_author_key_counts_as_uncredited(map_bytes):
+    raw = map_bytes.replace(b"Author=Westwood\r\n", b"")
+    assert not YRMap.load(raw).info().author_known
+
+
+def test_the_authors_own_name_is_never_overwritten(map_bytes, all_options):
+    """Showing a credit on screen must not rewrite the file's own author."""
+    before = IniFile.from_bytes(map_bytes).get("Basic", "Author")
+    after = apply_all(map_bytes, all_options).ini.get("Basic", "Author")
+    assert after == before == "Westwood"
+
+
+def test_an_uncredited_map_is_not_given_an_author(map_bytes, all_options):
+    raw = map_bytes.replace(b"Author=Westwood\r\n", b"")
+    assert apply_all(raw, all_options).ini.get("Basic", "Author") is None

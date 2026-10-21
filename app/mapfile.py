@@ -14,6 +14,14 @@ ALLOWED_EXTENSIONS = {".map", ".mpr", ".yrm"}
 #: malicious upload cannot exhaust the server's disk.
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
+#: Values that mean "nobody filled this in". FinalAlert writes "Author Not
+#: Set" by default, and plenty of maps leave the key out entirely or put a
+#: placeholder in it.
+UNCREDITED_AUTHORS = frozenset({
+    "", "author not set", "unknown", "none", "<none>", "n/a", "na",
+    "no author", "not set", "-",
+})
+
 #: Start locations live in [Waypoints] under keys 0-7.
 START_WAYPOINTS = [str(n) for n in range(8)]
 
@@ -43,6 +51,9 @@ class MapError(ValueError):
 class MapInfo:
     name: str
     author: str
+    #: False when the map names nobody, so the page can offer a credit
+    #: rather than printing a placeholder.
+    author_known: bool
     theater: str
     width: int | None
     height: int | None
@@ -177,6 +188,11 @@ class YRMap:
             if name.lower() not in known and not is_id_section(name)
         ]
 
+    def author(self) -> str:
+        """The credited author, or an empty string when nobody is named."""
+        raw = (self.ini.get("Basic", "Author") or "").strip()
+        return "" if raw.lower() in UNCREDITED_AUTHORS else raw
+
     def has_preview(self) -> bool:
         """Whether the map carries a minimap image we could decode.
 
@@ -212,7 +228,8 @@ class YRMap:
         width, height = self.dimensions()
         return MapInfo(
             name=self.ini.get("Basic", "Name") or "(unnamed)",
-            author=self.ini.get("Basic", "Author") or "(unknown)",
+            author=self.author(),
+            author_known=bool(self.author()),
             theater=self.ini.get("Map", "Theater") or "(unknown)",
             width=width,
             height=height,

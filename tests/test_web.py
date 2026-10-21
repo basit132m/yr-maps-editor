@@ -187,3 +187,16 @@ def test_map_without_a_preview_shows_none(map_bytes):
 def test_preview_rejects_a_bad_token():
     assert client.get("/preview/../../etc/passwd.png").status_code == 404
     assert client.get("/preview/" + "f" * 32 + ".png").status_code == 404
+
+
+def test_uncredited_map_offers_the_bank_of_yr_maps_credit(map_bytes):
+    raw = map_bytes.replace(b"Author=Westwood\r\n", b"")
+    html = upload(raw).text
+    assert "Not credited" in html
+    assert "bankofyrmaps.com" in html
+
+
+def test_credited_map_shows_its_author_and_no_credit_link(map_bytes):
+    html = upload(map_bytes).text
+    assert "Westwood" in html
+    assert "Not credited" not in html

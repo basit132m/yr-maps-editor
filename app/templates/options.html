@@ -18,7 +18,14 @@
   {% endif %}
 
   <dl class="facts">
-    <div><dt>Author</dt><dd>{{ info.author }}</dd></div>
+    <div><dt>Author</dt><dd>
+      {%- if info.author_known -%}
+        {{ info.author }}
+      {%- else -%}
+        <span class="uncredited">Not credited</span>
+        <a class="credit-link" href="https://www.bankofyrmaps.com/" target="_blank" rel="noopener">Bank of YR Maps <span aria-hidden="true">&nearr;</span></a>
+      {%- endif -%}
+    </dd></div>
     <div><dt>Theater</dt><dd>{{ info.theater|title }}</dd></div>
     {% if info.width %}<div><dt>Size</dt><dd>{{ info.width }} &times; {{ info.height }}</dd></div>{% endif %}
     <div><dt>Start positions</dt><dd>{{ info.players or "none found" }}</dd></div>
