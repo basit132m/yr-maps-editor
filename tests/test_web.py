@@ -115,3 +115,50 @@ def test_download_keeps_the_original_extension(map_bytes, uploaded, expected):
         "token": token, "mods": ["money"], "income": "1", "rate": "steady",
     })
     assert expected in response.headers["content-disposition"]
+
+
+# -- the upgrade picker ------------------------------------------------------
+
+
+def _mod_inputs(html):
+    """Every <input name="mods" ...> tag on the page, as raw text."""
+    import re
+    return re.findall(r'<input[^>]*name="mods"[^>]*>', html)
+
+
+def test_no_upgrade_is_preselected(map_bytes):
+    """The visitor chooses; nothing is ticked for them."""
+    tags = _mod_inputs(upload(map_bytes).text)
+    assert len(tags) == 4
+    for tag in tags:
+        assert "checked" not in tag, tag
+
+
+def test_every_upgrade_panel_can_collapse(map_bytes):
+    html = upload(map_bytes).text
+    assert html.count("data-mod-toggle") == 4
+    assert html.count('class="mod-clip"') == 4
+
+
+def test_sub_options_keep_their_recommended_defaults(map_bytes):
+    """Opening an upgrade should present sensible settings, not blanks."""
+    html = upload(map_bytes).text
+    assert 'name="auto" value="1"' in html and "checked" in html
+    assert 'name="income" value="1"' in html
+
+
+def test_picker_is_only_presentation(map_bytes):
+    """Collapsing changes no behaviour: an unticked upgrade is still skipped
+    and a ticked one still applies, exactly as before."""
+    token = _token_from(upload(map_bytes).text)
+    response = client.post("/apply", data={
+        "token": token, "mods": ["auto_repair"], "auto": "1",
+        # Values belonging to upgrades the user did not tick.
+        "income": "1", "rate": "generous", "build_speed": "fast",
+        "strength": "unbreakable",
+    })
+    edited = YRMap.load(response.content)
+    assert edited.ini.get("IQ", "RepairSell") == "0"
+    assert edited.ini.get("GACNST", "ProduceCashAmount") is None
+    assert edited.ini.get("General", "BuildSpeed") is None
+    assert edited.ini.get("General", "RepairPercent") is None

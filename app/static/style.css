@@ -300,19 +300,84 @@ a { color: var(--red-bright); }
 
 .legend { margin: -8px 0 22px; color: var(--muted); font-size: 13.5px; }
 
+.pick-hint { margin: -4px 0 18px; color: var(--ink-soft); font-size: 14.5px; }
+
 .mod {
   border: 1px solid var(--edge);
   border-radius: var(--radius);
   background: var(--panel);
-  padding: 20px 22px;
-  margin: 0 0 16px;
+  padding: 4px 22px;
+  margin: 0 0 14px;
+  transition: border-color .18s ease, background .18s ease;
 }
-.mod-head { display: flex; gap: 14px; align-items: flex-start; cursor: pointer; }
-.mod-head input { margin-top: 5px; width: 19px; height: 19px; accent-color: var(--red); flex: none; }
+.mod:hover { border-color: #33333d; }
+.mod.is-open {
+  border-color: rgba(226, 35, 26, .55);
+  background: linear-gradient(180deg, #1a1416 0%, var(--panel) 120px);
+}
+
+.mod-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 18px 0;
+  cursor: pointer;
+}
+.mod-head input {
+  margin-top: 4px;
+  width: 20px; height: 20px;
+  accent-color: var(--red);
+  flex: none;
+  cursor: pointer;
+}
+.mod-title { flex: 1; }
 .mod-head strong { font-size: 17px; font-weight: 800; }
 .mod-summary { display: block; margin-top: 3px; color: var(--muted); font-size: 14.5px; }
 
-.mod-body { padding: 16px 0 0 33px; }
+/* Chevron, shown only when scripting can actually collapse the panel. */
+.mod-state { display: none; }
+.js .mod-state {
+  display: block;
+  flex: none;
+  width: 11px; height: 11px;
+  margin: 8px 2px 0 6px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform .2s ease, border-color .2s ease;
+}
+.js .mod.is-open .mod-state {
+  transform: rotate(-135deg) translate(-3px, -3px);
+  border-color: var(--red);
+}
+
+/* Collapse by animating the row from zero to content height. Without
+   scripting the wrapper is an ordinary block and everything shows.
+
+   The clipping element carries no padding of its own: padding on a grid
+   item still contributes to row sizing even at 0fr with min-height 0, so
+   a padded clip never fully closes. All spacing lives inside it. */
+.js .mod-body-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .22s ease;
+}
+.js .mod.is-open .mod-body-wrap { grid-template-rows: 1fr; }
+.js .mod-body-wrap > .mod-clip {
+  overflow: hidden;
+  min-height: 0;
+  padding: 0;
+  /* Hidden content stays out of the tab order, but only once the panel has
+     finished closing. */
+  visibility: hidden;
+  transition: visibility 0s linear .22s;
+}
+.js .mod.is-open .mod-body-wrap > .mod-clip {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.mod-body { padding: 2px 0 20px 34px; }
 .option { margin-bottom: 16px; }
 .opt-line { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
 .opt-line input { margin-top: 5px; accent-color: var(--red); flex: none; }
@@ -334,6 +399,15 @@ a { color: var(--red-bright); }
 .help-indent { padding-left: 29px; }
 
 .form-actions { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; margin-top: 28px; }
+.picked {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.picked.picked-none { color: var(--muted); }
 
 /* --------------------------------------------------------------- tags */
 
@@ -402,6 +476,7 @@ code {
   .stat-value { font-size: 32px; }
   .cards, .facts { grid-template-columns: 1fr; }
   .panel { padding: 22px 18px; }
+  .mod { padding-inline: 16px; }
   .mod-body { padding-left: 0; }
   .topstrip { font-size: 10px; letter-spacing: .1em; }
 }

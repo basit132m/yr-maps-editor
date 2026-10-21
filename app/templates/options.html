@@ -55,6 +55,10 @@
   <input type="hidden" name="token" value="{{ token }}">
 
   <h2 class="section-title">Choose your upgrades</h2>
+  <p class="pick-hint">
+    Nothing is selected to begin with. Tick an upgrade to open it and choose
+    how it works.
+  </p>
   <p class="legend">
     <span class="tag tag-all">every version</span> works for everyone.
     <span class="tag tag-cncnet">CnCNet only</span> is ignored by the original
@@ -62,16 +66,18 @@
   </p>
 
   {% for mod in mods %}
-  <fieldset class="mod">
+  <fieldset class="mod" data-mod>
     <label class="mod-head">
-      <input type="checkbox" name="mods" value="{{ mod.id }}"
-             {% if mod.id != "never_destroyed" %}checked{% endif %}>
-      <span>
+      <input type="checkbox" name="mods" value="{{ mod.id }}" data-mod-toggle>
+      <span class="mod-title">
         <strong>{{ mod.name }}</strong>
         <span class="mod-summary">{{ mod.summary }}</span>
       </span>
+      <span class="mod-state" aria-hidden="true"></span>
     </label>
 
+    <div class="mod-body-wrap">
+    <div class="mod-clip">
     <div class="mod-body">
       {% for option in mod.options %}
       <div class="option">
@@ -106,12 +112,15 @@
 
       {% if mod.caveat %}<p class="note warn">{{ mod.caveat }}</p>{% endif %}
     </div>
+    </div>
+    </div>
   </fieldset>
   {% endfor %}
 
   <div class="form-actions">
     <button type="submit" class="btn"><span>Apply and Download</span></button>
     <a class="btn-ghost" href="/">Start over</a>
+    <p class="picked" data-picked role="status"></p>
   </div>
 </form>
 
