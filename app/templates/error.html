@@ -7,6 +7,6 @@
 </section>
 <section class="panel">
   <p class="lead">{{ message }}</p>
-  <a class="btn" href="/"><span>Try another file</span></a>
+  <a class="btn" href="{{ action_href or "/" }}"><span>{{ action_label or "Try another file" }}</span></a>
 </section>
 {% endblock %}

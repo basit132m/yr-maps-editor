@@ -252,6 +252,10 @@ def user_for_session(token: str | None) -> User | None:
         if row is not None:
             conn.execute("UPDATE users SET last_seen_at = ? WHERE id = ?",
                          (db.now(), row["id"]))
+            # Also here, not only at sign-in: adding an address to
+            # YRME_ADMIN_EMAILS should take effect on the next page load
+            # rather than waiting for a sign-out nobody knows to do.
+            row = _sync_admin(conn, row)
     return _row_to_user(row) if row else None
 
 

@@ -162,7 +162,7 @@ def test_an_ordinary_signed_in_user_is_refused(path):
     become_ordinary_user()
     response = client.get(path)
     assert response.status_code == 403
-    assert "administrators" in response.text
+    assert "not an administrator" in response.text
 
 
 def test_an_ordinary_user_cannot_change_a_report():
@@ -278,3 +278,30 @@ def test_a_malformed_admin_address_is_ignored_not_fatal(monkeypatch):
     monkeypatch.setattr("app.accounts.ADMIN_EMAILS", ("not-an-address", ADMIN_EMAIL))
     become_admin()
     assert accounts.authenticate(ADMIN_EMAIL, "a good password").is_admin
+
+
+def test_admin_applies_without_signing_out_again(monkeypatch):
+    """Adding an address to the config must take effect on the next page
+    load. Requiring a sign-out, with nothing on screen saying so, is how
+    someone concludes the panel is broken."""
+    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", ())
+    become_admin()                                  # signed up as nobody special
+    assert client.get("/admin").status_code == 403
+
+    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", (ADMIN_EMAIL,))
+    assert client.get("/admin").status_code == 200   # same session, no sign-out
+
+
+def test_losing_admin_also_applies_at_once(monkeypatch):
+    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", (ADMIN_EMAIL,))
+    become_admin()
+    assert client.get("/admin").status_code == 200
+    monkeypatch.setattr("app.accounts.ADMIN_EMAILS", ())
+    assert client.get("/admin").status_code == 403
+
+
+def test_the_refusal_says_what_to_do_about_it():
+    become_ordinary_user()
+    page = client.get("/admin").text
+    assert "YRME_ADMIN_EMAILS" in page
+    assert "Try another file" not in page

@@ -57,7 +57,11 @@ def require_admin(request: Request):
         return user, None
     if user is None:
         return None, RedirectResponse("/signin", status_code=303)
-    return None, error_page(request, "That area is for administrators.", 403)
+    return None, error_page(
+        request,
+        "You are signed in, but this account is not an administrator. "
+        "Add its address to YRME_ADMIN_EMAILS and reload.",
+        403, action_label="Back to the tool", action_href="/")
 
 
 def render(request: Request, template: str, **context) -> HTMLResponse:
@@ -96,8 +100,11 @@ def set_session_cookie(response: Response, request: Request, token: str) -> None
     )
 
 
-def error_page(request: Request, message: str, status_code: int = 400) -> HTMLResponse:
-    response = render(request, "error.html", message=message)
+def error_page(request: Request, message: str, status_code: int = 400,
+               action_label: str = "Try another file",
+               action_href: str = "/") -> HTMLResponse:
+    response = render(request, "error.html", message=message,
+                      action_label=action_label, action_href=action_href)
     response.status_code = status_code
     return response
 
