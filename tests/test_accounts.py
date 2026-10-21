@@ -222,3 +222,32 @@ def test_the_login_gate_closes_when_switched_on(map_bytes, monkeypatch):
 
     register()
     assert client.post("/upload", files=upload).status_code == 200
+
+
+def test_signing_in_returns_you_to_where_you_were_going():
+    client.cookies.clear()
+    bounced = client.get("/admin", follow_redirects=False)
+    assert bounced.headers["location"] == "/signin?next=/admin"
+    assert "session has ended" in client.get("/signin?next=/admin").text
+
+    register()
+    client.post("/signout", follow_redirects=False)
+    landed = client.post("/signin", data={"email": "johnsmith@gmail.com",
+                                          "password": "a good password",
+                                          "next": "/admin"},
+                         follow_redirects=False)
+    assert landed.headers["location"] == "/admin"
+
+
+@pytest.mark.parametrize("target", [
+    "https://example.com/phish", "//example.com", "http://example.com",
+])
+def test_the_return_target_cannot_leave_the_site(target):
+    """Otherwise a link could sign someone in and bounce them elsewhere."""
+    register()
+    client.post("/signout", follow_redirects=False)
+    landed = client.post("/signin", data={"email": "johnsmith@gmail.com",
+                                          "password": "a good password",
+                                          "next": target},
+                         follow_redirects=False)
+    assert landed.headers["location"] == "/account"

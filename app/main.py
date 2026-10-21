@@ -50,13 +50,25 @@ def set_client_cookie(response: Response, request: Request, token: str) -> None:
     )
 
 
+def safe_next(target: str) -> str:
+    """A redirect target from the query string, or nothing.
+
+    Only our own paths: an absolute URL here would let a link sign someone
+    in and then bounce them to another site.
+    """
+    if target.startswith("/") and not target.startswith("//"):
+        return target
+    return ""
+
+
 def require_admin(request: Request):
     """The signed-in admin, or a response explaining why not."""
     user = current_user(request)
     if user is not None and user.is_admin:
         return user, None
     if user is None:
-        return None, RedirectResponse("/signin", status_code=303)
+        return None, RedirectResponse(
+            f"/signin?next={request.url.path}", status_code=303)
     configured = accounts.admin_emails()
     if not configured:
         why = ("The server has no admin addresses configured, so nobody can "
@@ -278,22 +290,26 @@ def signup(request: Request, email: str = Form(""), password: str = Form(""),
 
 
 @app.get("/signin", response_class=HTMLResponse)
-def signin_page(request: Request):
+def signin_page(request: Request, next: str = ""):
     if current_user(request) is not None:
-        return RedirectResponse("/account", status_code=303)
-    return render(request, "signin.html", email="")
+        return RedirectResponse(safe_next(next) or "/account", status_code=303)
+    return render(request, "signin.html", email="", next=safe_next(next),
+                  message=("Your session has ended. Sign in to open the "
+                           "admin panel." if next.startswith("/admin") else ""))
 
 
 @app.post("/signin", response_class=HTMLResponse)
-def signin(request: Request, email: str = Form(""), password: str = Form("")):
+def signin(request: Request, email: str = Form(""), password: str = Form(""),
+           next: str = Form("")):
     try:
         user = accounts.authenticate(email, password)
     except accounts.AccountError as exc:
-        response = render(request, "signin.html", error=str(exc), email=email)
+        response = render(request, "signin.html", error=str(exc), email=email,
+                          next=safe_next(next))
         response.status_code = 401
         return response
 
-    response = RedirectResponse("/account", status_code=303)
+    response = RedirectResponse(safe_next(next) or "/account", status_code=303)
     set_session_cookie(response, request, accounts.start_session(user.id))
     return response
 
