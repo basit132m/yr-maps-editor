@@ -13,8 +13,9 @@ both.
 
 | Upgrade | What it writes | Where it works |
 |---|---|---|
-| **Auto-repair — structures** | `SelfHealing=yes` on every buildable structure | everywhere |
-| **Auto-repair — lobby setting** | `chkAutoRepair=true` | CnCNet only |
+| **Repair — free and fast** | `[General] RepairPercent` / `RepairStep` / `RepairRate` | everywhere |
+| **Repair — slow regeneration** | `SelfHealing=yes` on every buildable structure | everywhere |
+| **Repair — hands-off auto-repair** | `chkAutoRepair=true` | CnCNet only |
 | **Unlimited money — income** | `ProduceCashDelay` / `ProduceCashAmount` / `ProduceCashStartup` on each faction's Construction Yard | everywhere |
 | **Unlimited money — starting credits** | `cmbCredits` | CnCNet only |
 | **Speed — production** | `[General] BuildSpeed` | everywhere |
@@ -35,6 +36,23 @@ either produces no money with no error:
 
 Every preset therefore ships a real startup payment. The test suite asserts
 both rules for every rate, so a future preset cannot quietly break them.
+
+### What repair can and cannot do
+
+Tested in-game: there is no fast hands-off building repair in the stock
+game. `SelfHealing` works on buildings, but the engine hardcodes it to
+**one hit point per repair tick**, so on a structure with a thousand hit
+points it is invisible during an attack. It is worth keeping for recovery
+between fights, not as a defence during one.
+
+What the stock game can do is make repair free and near-instant, by
+tightening the global repair rules. The wrench still has to be switched on
+once per building, but it then costs nothing and finishes in a moment.
+Genuine no-click auto-repair exists only in the CnCNet client.
+
+`RepairStep` is kept at 25 deliberately: a value above a structure's own
+`Strength` crashes the engine when that structure is damaged and repair
+begins, and walls are the weakest buildings in the game.
 
 ### Why map-side rules overrides are safe
 

@@ -27,7 +27,7 @@ def test_upload_shows_map_details(map_bytes):
     response = upload(map_bytes)
     assert response.status_code == 200
     assert "Tournament Island" in response.text
-    assert "Auto-repair for buildings" in response.text
+    assert "Repair" in response.text
 
 
 @pytest.mark.parametrize("filename", ["map.mpr", "map.yrm", "MAP.MAP"])
@@ -57,7 +57,7 @@ def test_full_journey_returns_an_edited_map(map_bytes):
     response = client.post("/apply", data={
         "token": token,
         "mods": ["auto_repair", "money", "game_speed"],
-        "forced_option": "1", "structures": "1",
+        "forced_option": "1", "structures": "1", "fast_repair": "1",
         "income": "1", "rate": "generous", "starting": "1", "credits": "0",
         "speed": "fastest", "build_speed": "fast", "lock": "1",
     })

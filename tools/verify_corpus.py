@@ -28,7 +28,7 @@ from app.mods.auto_repair import BUILDINGS  # noqa: E402
 from app.mods.money import CONSTRUCTION_YARDS  # noqa: E402
 
 ALL_OPTIONS = {
-    "forced_option": "1", "structures": "1",
+    "forced_option": "1", "structures": "1", "fast_repair": "1",
     "income": "1", "rate": "generous", "starting": "1", "credits": "0",
     "speed": "fastest", "build_speed": "fast", "lock": "1",
 }

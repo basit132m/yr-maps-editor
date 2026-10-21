@@ -245,3 +245,42 @@ def test_lighting_tweaks_do_not_count_as_a_conversion(map_bytes):
     assert len(info.rules_overrides) == len(LIGHTING_SECTIONS)
     assert info.gameplay_overrides == []
     assert not info.heavily_modified
+
+
+# -- repair --------------------------------------------------------------
+
+
+def test_fast_repair_makes_repairing_free_and_quick(map_bytes, all_options):
+    from app.mods.auto_repair import REPAIR_PERCENT, REPAIR_RATE, REPAIR_STEP
+    ini = apply_all(map_bytes, all_options).ini
+    assert ini.get("General", "RepairPercent") == REPAIR_PERCENT
+    assert ini.get("General", "RepairStep") == REPAIR_STEP
+    assert ini.get("General", "RepairRate") == REPAIR_RATE
+
+
+def test_repair_step_cannot_crash_the_game(map_bytes):
+    """A RepairStep above a structure's Strength crashes the engine when
+    that structure is damaged and repair starts. Walls are the weakest
+    buildings in the game, so the value has to stay well under them."""
+    from app.mods.auto_repair import REPAIR_STEP
+    assert 0 < int(REPAIR_STEP) <= 35
+
+
+def test_repair_is_faster_than_retail(map_bytes):
+    """Retail RepairRate is 0.016 minutes between steps; lower is quicker."""
+    from app.mods.auto_repair import REPAIR_RATE
+    assert 0 < float(REPAIR_RATE) < 0.016
+
+
+def test_fast_repair_needs_no_cncnet(map_bytes):
+    ymap = YRMap.load(map_bytes)
+    BY_ID["auto_repair"].apply(ymap, {"fast_repair": "1"})
+    assert ymap.ini.get("General", "RepairPercent") == "0%"
+    assert not ymap.ini.has_section("ForcedOptions")
+
+
+def test_each_repair_lever_is_independent(map_bytes):
+    ymap = YRMap.load(map_bytes)
+    BY_ID["auto_repair"].apply(ymap, {"structures": "1"})
+    assert ymap.ini.get("GACNST", "SelfHealing") == "yes"
+    assert ymap.ini.get("General", "RepairPercent") is None
