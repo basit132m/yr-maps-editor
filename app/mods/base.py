@@ -30,6 +30,9 @@ class Option:
     default: str = ""
     choices: tuple[Choice, ...] = ()
     help: str = ""
+    #: True when only the CnCNet client honours this. Shown as a badge, so
+    #: nobody ships a map expecting an effect the stock game ignores.
+    cncnet_only: bool = False
 
 
 @dataclass

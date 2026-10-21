@@ -25,14 +25,16 @@ from app.inifile import IniFile  # noqa: E402
 from app.mapfile import ALLOWED_EXTENSIONS, MapError, YRMap  # noqa: E402
 from app.mods import REGISTRY  # noqa: E402
 from app.mods.auto_repair import BUILDINGS  # noqa: E402
+from app.mods.money import CONSTRUCTION_YARDS  # noqa: E402
 
 ALL_OPTIONS = {
     "forced_option": "1", "structures": "1",
-    "credits": "0", "speed": "fastest", "lock": "1",
+    "income": "1", "rate": "generous", "starting": "1", "credits": "0",
+    "speed": "fastest", "build_speed": "fast", "lock": "1",
 }
 
 #: Sections an upgrade is allowed to create.
-EXPECTED_NEW = {"ForcedOptions", *BUILDINGS}
+EXPECTED_NEW = {"ForcedOptions", "General", *BUILDINGS, *CONSTRUCTION_YARDS}
 
 #: Payload sections that must come out byte-for-byte as they went in.
 PROTECTED = ("IsoMapPack5", "OverlayPack", "OverlayDataPack", "PreviewPack", "Digest")

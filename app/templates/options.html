@@ -29,6 +29,11 @@
 <form action="/apply" method="post" class="card">
   <input type="hidden" name="token" value="{{ token }}">
   <h2>Choose your upgrades</h2>
+  <p class="legend">
+    <span class="badge badge-all">every version</span> works for everyone &mdash;
+    <span class="badge badge-cncnet">CnCNet only</span> is ignored by the
+    original Steam, Origin and disc game.
+  </p>
 
   {% for mod in mods %}
   <fieldset class="mod">
@@ -48,9 +53,14 @@
             <input type="checkbox" name="{{ option.id }}" value="1"
                    {% if option.default == "1" %}checked{% endif %}>
             {{ option.label }}
+            {% if option.cncnet_only %}<span class="badge badge-cncnet">CnCNet only</span>
+            {% else %}<span class="badge badge-all">every version</span>{% endif %}
           </label>
         {% else %}
-          <label for="{{ option.id }}">{{ option.label }}</label>
+          <label for="{{ option.id }}">{{ option.label }}
+            {% if option.cncnet_only %}<span class="badge badge-cncnet">CnCNet only</span>
+            {% else %}<span class="badge badge-all">every version</span>{% endif %}
+          </label>
           <select id="{{ option.id }}" name="{{ option.id }}">
             {% for choice in option.choices %}
             <option value="{{ choice.value }}"

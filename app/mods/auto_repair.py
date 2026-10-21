@@ -54,7 +54,8 @@ class AutoRepairMod(Mod):
             label="Force the CnCNet auto-repair lobby setting on",
             kind="bool",
             default="1",
-            help="Writes chkAutoRepair=true. Needs the CnCNet client.",
+            help="Writes chkAutoRepair=true.",
+            cncnet_only=True,
         ),
         Option(
             id="structures",

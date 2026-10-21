@@ -127,9 +127,25 @@ class YRMap:
             "scripts", "aitriggertypes", "aitriggerenables", "preview", "digest",
             "specialflags", "variablenames", "lighting", "header", "sounds",
             "forcedoptions", "globalvariables", "briefing", "multimaps", "tutorial",
+            "header", "authorinformation", "scripttypes", "smudge", "special",
+            "aircrafttypes", "infantrytypes", "vehicletypes", "buildingtypes",
         }
+        # FinalAlert writes a section per country, and one per team type /
+        # script / task force keyed by its eight-digit ID. Neither is a
+        # rules override.
+        known.update({
+            "africans", "alliance", "americans", "arabs", "british",
+            "confederation", "french", "gdi", "germans", "neutral", "nod",
+            "russians", "yuricountry", "special",
+        })
         known.update(section.lower() for section in self.BINARY_SECTIONS)
-        return [name for name in self.ini.sections() if name.lower() not in known]
+        def is_id_section(name: str) -> bool:
+            return len(name) == 8 and all(c in "0123456789ABCDEFabcdef" for c in name)
+
+        return [
+            name for name in self.ini.sections()
+            if name.lower() not in known and not is_id_section(name)
+        ]
 
     def info(self) -> MapInfo:
         width, height = self.dimensions()

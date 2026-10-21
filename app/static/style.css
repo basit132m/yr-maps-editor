@@ -124,3 +124,18 @@ code { background: rgba(255,255,255,.07); padding: 1px 5px; border-radius: 4px; 
   .facts { grid-template-columns: 1fr; }
   .mod-body { padding-left: 0; }
 }
+
+.badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+.badge-all { background: #1d3a28; color: #8fd6aa; }
+.badge-cncnet { background: #2d2740; color: #b9a8e8; }
+.legend { margin: -6px 0 18px; color: var(--ink-dim); font-size: 13px; }

@@ -6,6 +6,7 @@ from app.inifile import IniFile
 from app.mapfile import MapError, YRMap
 from app.mods import BY_ID, REGISTRY
 from app.mods.auto_repair import BUILDINGS
+from app.mods.money import CONSTRUCTION_YARDS, INCOME_DELAY, INCOME_RATES
 
 BINARY_SECTIONS = ("IsoMapPack5", "OverlayPack", "Digest")
 
@@ -49,7 +50,7 @@ def test_binary_sections_are_never_touched(map_bytes, all_options):
 def test_only_expected_sections_are_added(map_bytes, all_options):
     before = set(IniFile.from_bytes(map_bytes).sections())
     after = set(apply_all(map_bytes, all_options).ini.sections())
-    assert after - before == {"ForcedOptions", *BUILDINGS}
+    assert after - before == {"ForcedOptions", "General", *BUILDINGS}
 
 
 def test_forced_options_written(map_bytes, all_options):
@@ -84,7 +85,7 @@ def test_no_upgrades_selected_leaves_file_untouched(map_bytes):
 
 def test_unknown_choice_falls_back_to_default(map_bytes):
     ymap = YRMap.load(map_bytes)
-    BY_ID["money"].apply(ymap, {"credits": "; injected"})
+    BY_ID["money"].apply(ymap, {"starting": "1", "credits": "; injected", "income": "1", "rate": "<script>"})
     BY_ID["game_speed"].apply(ymap, {"speed": "../../etc/passwd"})
     assert ymap.ini.get("ForcedOptions", "cmbCredits") == "0"
     assert ymap.ini.get("ForcedOptions", "cmbGameSpeedCapSkirmish") == "0"
@@ -93,7 +94,7 @@ def test_unknown_choice_falls_back_to_default(map_bytes):
 def test_existing_forced_options_are_updated_not_duplicated(map_bytes):
     raw = map_bytes + b"\r\n[ForcedOptions]\r\ncmbCredits=8\r\nchkCrates=false\r\n"
     ymap = YRMap.load(raw)
-    BY_ID["money"].apply(ymap, {"credits": "0"})
+    BY_ID["money"].apply(ymap, {"starting": "1", "credits": "0"})
     assert ymap.ini.items("ForcedOptions") == [("cmbCredits", "0"), ("chkCrates", "false")]
 
 
@@ -106,3 +107,42 @@ def test_renaming_marks_the_map_as_edited(map_bytes):
 def test_output_is_still_a_loadable_map(map_bytes, all_options):
     reloaded = YRMap.load(apply_all(map_bytes, all_options).to_bytes())
     assert reloaded.info().players == 4
+
+
+def test_income_is_written_to_every_construction_yard(map_bytes, all_options):
+    ini = apply_all(map_bytes, all_options).ini
+    amount, startup = INCOME_RATES["generous"]
+    for yard in CONSTRUCTION_YARDS:
+        assert ini.get(yard, "ProduceCashAmount") == str(amount), yard
+        assert ini.get(yard, "ProduceCashDelay") == str(INCOME_DELAY), yard
+        assert ini.get(yard, "ProduceCashStartup") == str(startup), yard
+
+
+@pytest.mark.parametrize("rate", sorted(INCOME_RATES))
+def test_every_rate_satisfies_the_engine_requirements(map_bytes, rate):
+    """Delay must exceed 1 and startup must be non-zero, or no cash is paid."""
+    ymap = YRMap.load(map_bytes)
+    BY_ID["money"].apply(ymap, {"income": "1", "rate": rate})
+    for yard in CONSTRUCTION_YARDS:
+        assert int(ymap.ini.get(yard, "ProduceCashDelay")) > 1
+        assert int(ymap.ini.get(yard, "ProduceCashStartup")) != 0
+        assert int(ymap.ini.get(yard, "ProduceCashAmount")) > 0
+
+
+def test_income_works_without_any_cncnet_keys(map_bytes):
+    """A vanilla-only user gets money with no [ForcedOptions] written."""
+    ymap = YRMap.load(map_bytes)
+    BY_ID["money"].apply(ymap, {"income": "1", "rate": "steady"})
+    assert ymap.ini.get("GACNST", "ProduceCashAmount") == "50"
+    assert not ymap.ini.has_section("ForcedOptions")
+
+
+def test_build_speed_override_is_written(map_bytes, all_options):
+    ini = apply_all(map_bytes, all_options).ini
+    assert ini.get("General", "BuildSpeed") == "0.35"
+
+
+def test_build_speed_can_be_left_alone(map_bytes):
+    ymap = YRMap.load(map_bytes)
+    BY_ID["game_speed"].apply(ymap, {"speed": "normal", "build_speed": "normal"})
+    assert ymap.ini.get("General", "BuildSpeed") is None

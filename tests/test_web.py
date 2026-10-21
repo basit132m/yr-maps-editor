@@ -58,7 +58,8 @@ def test_full_journey_returns_an_edited_map(map_bytes):
         "token": token,
         "mods": ["auto_repair", "money", "game_speed"],
         "forced_option": "1", "structures": "1",
-        "credits": "0", "speed": "fastest", "lock": "1",
+        "income": "1", "rate": "generous", "starting": "1", "credits": "0",
+        "speed": "fastest", "build_speed": "fast", "lock": "1",
     })
     assert response.status_code == 200
     assert "attachment" in response.headers["content-disposition"]
@@ -75,7 +76,7 @@ def test_full_journey_returns_an_edited_map(map_bytes):
 def test_selecting_one_upgrade_leaves_the_others_alone(map_bytes):
     token = _token_from(upload(map_bytes).text)
     response = client.post("/apply", data={
-        "token": token, "mods": ["money"], "credits": "1",
+        "token": token, "mods": ["money"], "starting": "1", "credits": "1",
     })
     edited = YRMap.load(response.content)
     assert edited.ini.get("ForcedOptions", "cmbCredits") == "1"
@@ -96,6 +97,6 @@ def test_bad_token_is_rejected():
 
 def test_token_cannot_be_reused(map_bytes):
     token = _token_from(upload(map_bytes).text)
-    data = {"token": token, "mods": ["money"], "credits": "0"}
+    data = {"token": token, "mods": ["money"], "starting": "1", "credits": "0"}
     assert client.post("/apply", data=data).status_code == 200
     assert client.post("/apply", data=data).status_code == 410
