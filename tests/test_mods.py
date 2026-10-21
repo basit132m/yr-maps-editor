@@ -50,7 +50,7 @@ def test_binary_sections_are_never_touched(map_bytes, all_options):
 def test_only_expected_sections_are_added(map_bytes, all_options):
     before = set(IniFile.from_bytes(map_bytes).sections())
     after = set(apply_all(map_bytes, all_options).ini.sections())
-    assert after - before == {"ForcedOptions", "General", *BUILDINGS}
+    assert after - before == {"ForcedOptions", "General", "IQ", *BUILDINGS}
 
 
 def test_forced_options_written(map_bytes, all_options):
@@ -284,3 +284,25 @@ def test_each_repair_lever_is_independent(map_bytes):
     BY_ID["auto_repair"].apply(ymap, {"structures": "1"})
     assert ymap.ini.get("GACNST", "SelfHealing") == "yes"
     assert ymap.ini.get("General", "RepairPercent") is None
+
+
+def test_auto_repair_lowers_the_iq_threshold(map_bytes, all_options):
+    """Human players are IQ 0; the stock threshold of 1 excludes them."""
+    from app.mods.auto_repair import REPAIR_SELL_IQ
+    ini = apply_all(map_bytes, all_options).ini
+    assert ini.get("IQ", "RepairSell") == REPAIR_SELL_IQ
+    assert int(REPAIR_SELL_IQ) == 0
+
+
+def test_auto_repair_needs_no_cncnet(map_bytes):
+    ymap = YRMap.load(map_bytes)
+    BY_ID["auto_repair"].apply(ymap, {"auto": "1"})
+    assert ymap.ini.get("IQ", "RepairSell") == "0"
+    assert not ymap.ini.has_section("ForcedOptions")
+
+
+def test_auto_repair_merges_into_an_existing_iq_section(map_bytes):
+    raw = map_bytes + b"\r\n[IQ]\r\nRepairSell=1\r\nGuardArea=2\r\n"
+    ymap = YRMap.load(raw)
+    BY_ID["auto_repair"].apply(ymap, {"auto": "1"})
+    assert ymap.ini.items("IQ") == [("RepairSell", "0"), ("GuardArea", "2")]

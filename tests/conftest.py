@@ -62,7 +62,7 @@ def all_options() -> dict[str, str]:
     return {
         "forced_option": "1",
         "structures": "1",
-        "fast_repair": "1",
+        "fast_repair": "1", "auto": "1",
         "income": "1",
         "rate": "generous",
         "starting": "1",

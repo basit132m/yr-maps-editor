@@ -57,7 +57,7 @@ def test_full_journey_returns_an_edited_map(map_bytes):
     response = client.post("/apply", data={
         "token": token,
         "mods": ["auto_repair", "money", "game_speed"],
-        "forced_option": "1", "structures": "1", "fast_repair": "1",
+        "forced_option": "1", "structures": "1", "fast_repair": "1", "auto": "1",
         "income": "1", "rate": "generous", "starting": "1", "credits": "0",
         "speed": "fastest", "build_speed": "fast", "lock": "1",
     })

@@ -13,9 +13,10 @@ both.
 
 | Upgrade | What it writes | Where it works |
 |---|---|---|
-| **Repair — free and fast** | `[General] RepairPercent` / `RepairStep` / `RepairRate` | everywhere |
+| **Auto-repair for buildings** | `[IQ] RepairSell=0` | **everywhere** |
+| **Repair — free and near-instant** | `[General] RepairPercent` / `RepairStep` / `RepairRate` | everywhere |
 | **Repair — slow regeneration** | `SelfHealing=yes` on every buildable structure | everywhere |
-| **Repair — hands-off auto-repair** | `chkAutoRepair=true` | CnCNet only |
+| **Repair — CnCNet lobby switch** | `chkAutoRepair=true` | CnCNet only |
 | **Unlimited money — income** | `ProduceCashDelay` / `ProduceCashAmount` / `ProduceCashStartup` on each faction's Construction Yard | everywhere |
 | **Unlimited money — starting credits** | `cmbCredits` | CnCNet only |
 | **Speed — production** | `[General] BuildSpeed` | everywhere |
@@ -37,18 +38,29 @@ either produces no money with no error:
 Every preset therefore ships a real startup payment. The test suite asserts
 both rules for every rate, so a future preset cannot quietly break them.
 
-### What repair can and cannot do
+### How auto-repair works
 
-Tested in-game: there is no fast hands-off building repair in the stock
-game. `SelfHealing` works on buildings, but the engine hardcodes it to
-**one hit point per repair tick**, so on a structure with a thousand hit
-points it is invisible during an attack. It is worth keeping for recovery
-between fights, not as a defence during one.
+`[IQ] RepairSell=0`, and that is the whole trick.
 
-What the stock game can do is make repair free and near-instant, by
-tightening the global repair rules. The wrench still has to be switched on
-once per building, but it then costs nothing and finishes in a moment.
-Genuine no-click auto-repair exists only in the CnCNet client.
+The `[IQ]` section holds the minimum IQ a house needs before the engine
+does something for it automatically, and `RepairSell` governs choosing to
+repair a damaged building instead of selling it. The stock value is `1`,
+and the rules file notes that a human-controlled country is presumed to
+have an IQ of zero — which is precisely why players never get it.
+Lowering the threshold to `0` brings human players in, and their buildings
+start repairing the moment they take damage.
+
+A widely played community survival map enables building auto-repair with
+that single key and nothing else, which is where this came from.
+
+Because what the key really unlocks is a *choice* between repairing and
+selling, decided on cost, the free-repair option matters more than it
+looks: at zero cost there is never a reason to sell.
+
+`SelfHealing=yes` is offered separately and defaults to off. It works on
+buildings, but the engine hardcodes it to **one hit point per repair
+tick**, so on a thousand-hit-point structure it is invisible during an
+attack. The IQ route does the job properly.
 
 `RepairStep` is kept at 25 deliberately: a value above a structure's own
 `Strength` crashes the engine when that structure is damaged and repair
