@@ -30,7 +30,7 @@ from app.mods.money import CONSTRUCTION_YARDS  # noqa: E402
 ALL_OPTIONS = {
     "forced_option": "1", "structures": "1", "fast_repair": "1", "auto": "1",
     "income": "1", "rate": "generous", "starting": "1", "credits": "0",
-    "speed": "fastest", "build_speed": "fast", "buildup": "1", "strength": "unbreakable", "lock": "1",
+    "speed": "fastest", "build_speed": "fast", "strength": "unbreakable", "lock": "1",
 }
 
 #: Sections an upgrade is allowed to create.

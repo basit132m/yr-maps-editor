@@ -59,7 +59,7 @@ def test_full_journey_returns_an_edited_map(map_bytes):
         "mods": ["auto_repair", "money", "game_speed"],
         "forced_option": "1", "structures": "1", "fast_repair": "1", "auto": "1",
         "income": "1", "rate": "generous", "starting": "1", "credits": "0",
-        "speed": "fastest", "build_speed": "fast", "buildup": "1", "strength": "unbreakable", "lock": "1",
+        "speed": "fastest", "build_speed": "fast", "strength": "unbreakable", "lock": "1",
     })
     assert response.status_code == 200
     assert "attachment" in response.headers["content-disposition"]

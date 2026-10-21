@@ -302,12 +302,17 @@ def test_auto_repair_merges_into_an_existing_iq_section(map_bytes):
     assert ymap.ini.items("IQ") == [("RepairSell", "0"), ("GuardArea", "2")]
 
 
-def test_buildup_time_is_faster_than_stock(map_bytes, all_options):
-    """Stock BuildupTime is 0.06; a real community map ships 0.01."""
-    from app.mods.game_speed import FAST_BUILDUP_TIME
+def test_buildup_animation_is_never_touched(map_bytes, all_options):
+    """Shortening BuildupTime makes buildings appear out of nowhere rather
+    than rising into place, which looks broken for no real time saved."""
     ini = apply_all(map_bytes, all_options).ini
-    assert ini.get("General", "BuildupTime") == FAST_BUILDUP_TIME
-    assert 0 < float(FAST_BUILDUP_TIME) < 0.06
+    assert ini.get("General", "BuildupTime") is None
+
+
+def test_a_maps_own_buildup_time_is_left_as_the_author_set_it(map_bytes, all_options):
+    raw = map_bytes + b"\r\n[General]\r\nBuildupTime=.01\r\n"
+    ini = apply_all(raw, all_options).ini
+    assert ini.get("General", "BuildupTime") == ".01"
 
 
 def test_build_speed_values_match_what_real_maps_use(map_bytes):

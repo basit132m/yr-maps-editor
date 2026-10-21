@@ -17,7 +17,6 @@ both.
 | **Never-destroyed buildings** | `RepairPercent` / `RepairStep` / `RepairRate` | everywhere |
 | **Repair — slow regeneration** | `SelfHealing=yes` on every buildable structure | everywhere |
 | **Repair — CnCNet lobby switch** | `chkAutoRepair=true` | CnCNet only |
-| **Speed — construction time** | `[General] BuildupTime` | everywhere |
 | **Unlimited money — income** | `ProduceCashDelay` / `ProduceCashAmount` / `ProduceCashStartup` on each faction's Construction Yard | everywhere |
 | **Unlimited money — starting credits** | `cmbCredits` | CnCNet only |
 | **Speed — production** | `[General] BuildSpeed` | everywhere |
@@ -73,6 +72,16 @@ attack. The IQ route does the job properly.
 `RepairStep` is kept at 25 deliberately: a value above a structure's own
 `Strength` crashes the engine when that structure is damaged and repair
 begins, and walls are the weakest buildings in the game.
+
+### What the speed upgrade does not touch
+
+`[General] BuildupTime` — the rise-into-place animation after a building
+is placed — is left alone on purpose. Shortening it saves no meaningful
+time and makes buildings appear out of nowhere, which reads as a glitch.
+Queue speed via `BuildSpeed` is where the real gain is, so that is the
+only thing changed.
+
+A map that sets its own `BuildupTime` keeps the author's value.
 
 ### Why map-side rules overrides are safe
 

@@ -68,7 +68,7 @@ def all_options() -> dict[str, str]:
         "starting": "1",
         "credits": "0",
         "speed": "fastest",
-        "build_speed": "fast", "buildup": "1", "strength": "unbreakable",
+        "build_speed": "fast", "strength": "unbreakable",
         "lock": "1",
     }
 
