@@ -3,21 +3,40 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}{{ site_name }}{% endblock %}</title>
-<meta name="description" content="Upload a Red Alert 2: Yuri's Revenge map and apply upgrades like auto-repair, maximum starting money and game speed.">
-<link rel="stylesheet" href="/static/style.css">
+<title>{% block title %}{{ site_name }} &mdash; Upgrade Your Yuri&rsquo;s Revenge Maps{% endblock %}</title>
+<meta name="description" content="Upload a Red Alert 2: Yuri's Revenge map and add unlimited money, auto-repair and faster building. Free, instant, no install.">
+<link rel="icon" href="/static/favicon.ico" sizes="any">
+<link rel="icon" href="/static/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<meta property="og:title" content="{{ site_name }}">
+<meta property="og:description" content="Add unlimited money, auto-repair and faster building to any Yuri's Revenge map.">
+<meta property="og:image" content="/static/mark.png">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css?v=4">
 </head>
 <body>
-<header class="site-header">
-  <a class="brand" href="/">{{ site_name }}</a>
-  <p class="tagline">Upgrade your Yuri&rsquo;s Revenge maps</p>
-</header>
+
+<div class="topstrip">
+  <span class="topstrip-left">
+    <span class="dot"></span>
+    Map Upgrade Tool for Red Alert 2 &mdash; Yuri&rsquo;s Revenge
+  </span>
+  <a class="topstrip-right" href="https://www.bankofyrmaps.com/" target="_blank" rel="noopener">
+    Bank of YR Maps <span aria-hidden="true">&rarr;</span>
+  </a>
+</div>
+
 <main>
 {% block content %}{% endblock %}
 </main>
-<footer>
-  <p>Works with <code>.map</code>, <code>.mpr</code> and <code>.yrm</code> files.
-     Uploads are deleted automatically after 30 minutes.</p>
-</footer>
+
+<p class="engine">
+  Engine created by
+  <a href="https://www.bankofyrmaps.com/" target="_blank" rel="noopener">Bank of YR Maps</a>
+</p>
+
 </body>
 </html>

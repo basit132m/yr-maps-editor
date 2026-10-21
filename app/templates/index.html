@@ -1,31 +1,87 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="card">
-  <h1>Upload a map</h1>
-  <p class="lead">
-    Choose a Yuri&rsquo;s Revenge map file and we&rsquo;ll read it, show you what&rsquo;s
-    inside, and let you pick the upgrades you want.
+
+<section class="hero">
+  <p class="eyebrow">Red Alert 2 &mdash; Yuri&rsquo;s Revenge</p>
+
+  <img class="hero-logo" src="/static/logo-wide.webp" width="1400" height="277"
+       alt="YR Maps Editor" fetchpriority="high">
+
+  <p class="hero-sub">
+    Drop in any Yuri&rsquo;s Revenge map and add unlimited money, auto-repair
+    and faster building. Your terrain is never touched &mdash; only the rules change.
   </p>
+
+  <div class="hero-actions">
+    <a class="btn" href="#upload"><span>Upgrade a Map</span></a>
+    <a class="btn-ghost" href="#how">How It Works</a>
+  </div>
+</section>
+
+<section class="stats">
+  <div><span class="stat-label">Upgrades</span><span class="stat-value">4</span></div>
+  <div><span class="stat-label">Map Formats</span><span class="stat-value">3</span></div>
+  <div><span class="stat-label">Works Offline</span><span class="stat-value">Yes</span></div>
+  <div><span class="stat-label">Price</span><span class="stat-value">Free</span></div>
+</section>
+
+<section class="panel" id="upload">
+  <h2>Upload your map</h2>
+  <p class="panel-sub">
+    We read the file, show you what&rsquo;s inside it, and let you pick the
+    upgrades you want.
+  </p>
+
   <form action="/upload" method="post" enctype="multipart/form-data">
     <label class="dropzone" for="mapfile">
+      <svg class="dropzone-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M24 6v24M24 30l-9-9M24 30l9-9" fill="none" stroke="currentColor"
+              stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 32v6a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4v-6" fill="none"
+              stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
+      </svg>
       <span class="dropzone-title">Choose map file</span>
-      <span class="dropzone-hint">.map, .mpr or .yrm &mdash; up to {{ max_mb }} MB</span>
+      <span class="dropzone-hint">.map &middot; .mpr &middot; .yrm &mdash; up to {{ max_mb }} MB</span>
       <input id="mapfile" type="file" name="mapfile" accept=".map,.mpr,.yrm" required>
     </label>
-    <button type="submit" class="primary">Analyse map</button>
+    <button type="submit" class="btn btn-block"><span>Analyse Map</span></button>
   </form>
 </section>
 
-<section class="card muted">
-  <h2>What you can change</h2>
-  <ul class="feature-list">
-    <li><strong>Auto-repair</strong> &mdash; damaged base structures repair themselves.</li>
-    <li><strong>Unlimited money</strong> &mdash; credits climb all match instead of running out.</li>
-    <li><strong>Speed</strong> &mdash; faster production, and a faster match on CnCNet.</li>
-  </ul>
+<section id="how">
+  <h2 class="section-title">What you can add</h2>
+  <div class="cards">
+    <article class="card">
+      <h3>Unlimited money</h3>
+      <p>Credits climb all match instead of running out. Each player&rsquo;s
+         Construction Yard pays out on a timer, the way an Oil Derrick does.</p>
+      <span class="tag tag-all">Every version</span>
+    </article>
+    <article class="card">
+      <h3>Auto-repair</h3>
+      <p>The repair wrench switches itself on the moment a building is hit,
+         then repairs at the normal speed and cost.</p>
+      <span class="tag tag-all">Every version</span>
+    </article>
+    <article class="card">
+      <h3>Faster building</h3>
+      <p>Buildings and units come out of the queue sooner. Choose how much
+         quicker, up to about seven times.</p>
+      <span class="tag tag-all">Every version</span>
+    </article>
+    <article class="card">
+      <h3>Never-destroyed buildings</h3>
+      <p>Repairs become free and near-instant, so a base heals about as fast
+         as it can be damaged. Deliberately overpowered.</p>
+      <span class="tag tag-all">Every version</span>
+    </article>
+  </div>
+
   <p class="note">
-    Everyone in a match needs the same edited file, so share the download with
-    the other players before you host.
+    Everyone in a match needs the same edited file, so share your download with
+    the other players before you host. Your map is renamed
+    <code>&hellip; [Edited]</code> so the versions are easy to tell apart.
   </p>
 </section>
+
 {% endblock %}

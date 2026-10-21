@@ -16,7 +16,7 @@ def upload(map_bytes, filename="island.map"):
 def test_home_page_loads():
     response = client.get("/")
     assert response.status_code == 200
-    assert "Upload a map" in response.text
+    assert "Upload your map" in response.text
 
 
 def test_healthz():

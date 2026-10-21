@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Problem &mdash; {{ site_name }}{% endblock %}
 {% block content %}
-<section class="card">
+<section class="page-head">
+  <p class="eyebrow">Something went wrong</p>
   <h1>That didn&rsquo;t work</h1>
+</section>
+<section class="panel">
   <p class="lead">{{ message }}</p>
-  <a class="primary" href="/">Try another file</a>
+  <a class="btn" href="/"><span>Try another file</span></a>
 </section>
 {% endblock %}
