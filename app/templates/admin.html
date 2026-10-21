@@ -27,7 +27,14 @@
     </li>
     {% endfor %}
   </ul>
-  {% else %}<p class="report-meta">Nothing yet.</p>{% endif %}
+  {% else %}
+  <div class="empty">
+    <p><strong>No reports yet.</strong></p>
+    <p>Problem reports and feature requests sent from
+       <a href="/support">the support page</a> land here. Send one yourself
+       to see how it looks.</p>
+  </div>
+  {% endif %}
 </section>
 
 <section class="panel">
@@ -42,6 +49,14 @@
     </li>
     {% endfor %}
   </ul>
-  {% else %}<p class="report-meta">Nothing yet.</p>{% endif %}
+  {% else %}
+  <div class="empty">
+    <p><strong>No chats yet.</strong></p>
+    <p>When a visitor opens the chat bubble on any page and writes to you,
+       the conversation appears here and you reply from
+       <a href="/admin/chats">Chats</a>. Open the tool in another browser
+       and send yourself a message to try it.</p>
+  </div>
+  {% endif %}
 </section>
 {% endblock %}

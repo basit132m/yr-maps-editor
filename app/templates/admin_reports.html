@@ -21,7 +21,22 @@
   {% endfor %}
 </div>
 
-{% if not reports %}<p class="note">Nothing matches that.</p>{% endif %}
+{% if not reports %}
+<section class="panel">
+  <div class="empty">
+    {% if active_status or active_kind %}
+    <p><strong>Nothing matches that filter.</strong></p>
+    <p><a href="/admin/reports">Show everything</a></p>
+    {% else %}
+    <p><strong>No reports yet.</strong></p>
+    <p>Anyone can send a problem report or a feature request from
+       <a href="/support">the support page</a> without an account. They
+       appear here, and whatever you write in the reply box is shown back
+       to the person who sent it.</p>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
 
 {% for item in reports %}
 <article class="panel report">

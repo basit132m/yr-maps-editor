@@ -9,7 +9,16 @@
 {% include "_adminnav.html" %}
 
 {% if not threads %}
-<p class="note">No one has started a chat yet.</p>
+<section class="panel">
+  <div class="empty">
+    <p><strong>No chats yet.</strong></p>
+    <p>A chat bubble sits in the corner of every page of the tool. When a
+       visitor writes to you, their conversation appears in a list here and
+       you answer inline &mdash; no account needed on their side.</p>
+    <p>To try it: open <a href="/">the tool</a> in a private window, click
+       the bubble, send a message, then come back here.</p>
+  </div>
+</section>
 {% else %}
 <div class="chatlayout">
   <aside class="threadlist">

@@ -411,6 +411,7 @@ def admin_reports(request: Request, status: str = "", kind: str = ""):
     if blocked is not None:
         return blocked
     return render(request, "admin_reports.html", user=user,
+                  counts=support.counts(), waiting=chat.waiting_count(),
                   reports=support.listing(status or None, kind or None),
                   statuses=support.STATUSES, kinds=support.KINDS,
                   active_status=status, active_kind=kind)
@@ -438,8 +439,9 @@ def admin_chats(request: Request, open_id: int = 0):
     active = chat.get(open_id) if open_id else (threads[0] if threads else None)
     if active is not None:
         chat.mark_read(active.id)
-    return render(request, "admin_chats.html", user=user, threads=threads,
-                  active=active,
+    return render(request, "admin_chats.html", user=user,
+                  counts=support.counts(), waiting=chat.waiting_count(),
+                  threads=threads, active=active,
                   messages=chat.thread(active.id) if active else [])
 
 

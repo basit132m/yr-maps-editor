@@ -1,6 +1,15 @@
-<nav class="adminnav">
-  <a href="/admin">Overview</a>
-  <a href="/admin/reports">Reports</a>
-  <a href="/admin/chats">Chats</a>
-  <a href="/">Back to the tool</a>
+{% set here = request.url.path %}
+<nav class="adminnav" aria-label="Admin sections">
+  <a class="adminnav-tab {% if here == '/admin' %}is-on{% endif %}" href="/admin">
+    Overview
+  </a>
+  <a class="adminnav-tab {% if here.startswith('/admin/reports') %}is-on{% endif %}"
+     href="/admin/reports">
+    Reports{% if counts and counts.open %} <span class="pill">{{ counts.open }}</span>{% endif %}
+  </a>
+  <a class="adminnav-tab {% if here.startswith('/admin/chats') %}is-on{% endif %}"
+     href="/admin/chats">
+    Chats{% if waiting %} <span class="pill">{{ waiting }}</span>{% endif %}
+  </a>
+  <a class="adminnav-tab adminnav-out" href="/">Back to the tool</a>
 </nav>
