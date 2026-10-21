@@ -685,3 +685,147 @@ code {
   .who span.avatar { margin: 0; }
   .who { font-size: 10px; }
 }
+
+/* ------------------------------------------------------- support & admin */
+
+textarea {
+  width: 100%;
+  padding: 12px 13px;
+  background: var(--bg-raise);
+  color: var(--ink);
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 15px;
+  resize: vertical;
+}
+textarea:focus { outline: 2px solid var(--red); outline-offset: 1px; border-color: transparent; }
+
+.kindpick { display: flex; gap: 10px; margin-bottom: 26px; flex-wrap: wrap; }
+.kindpick-option {
+  padding: 9px 18px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.kindpick-option.is-on { border-color: var(--red); color: var(--ink); background: var(--shade); }
+
+.btn-small { padding: 10px 20px; font-size: 13px; }
+
+.report { padding: 22px; }
+.report-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.report-head strong { font-size: 16px; }
+.report-meta { margin: 4px 0 0; color: var(--muted); font-size: 12.5px; }
+.report-body { margin: 12px 0 0; color: var(--ink-soft); font-size: 14.5px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.report-form { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.report-form select, .report-form input {
+  padding: 9px 11px; background: var(--bg-raise); color: var(--ink);
+  border: 1px solid var(--edge); border-radius: 7px; font: inherit; font-size: 13.5px;
+}
+.report-form input { flex: 1; min-width: 180px; }
+
+.status-open     { background: var(--cn-bg); color: var(--cn-ink); }
+.status-planned  { background: var(--warn-bg); color: var(--warn-ink); }
+.status-done     { background: var(--ok-bg); color: var(--ok-ink); }
+.status-declined { background: var(--shade); color: var(--muted); }
+
+.adminnav { display: flex; gap: 20px; margin: 0 0 26px; flex-wrap: wrap; }
+.adminnav a {
+  color: var(--muted); text-decoration: none; font-size: 12px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase;
+  padding-bottom: 6px; border-bottom: 2px solid transparent;
+}
+.adminnav a:hover { color: var(--ink); border-bottom-color: var(--red); }
+
+.filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.filters-gap { flex: 1; min-width: 10px; }
+.chip {
+  padding: 6px 13px; border: 1px solid var(--edge); border-radius: 999px;
+  color: var(--muted); font-size: 12px; font-weight: 700; text-decoration: none;
+}
+.chip.is-on { border-color: var(--red); color: var(--ink); }
+
+ul.plain { margin: 0; padding: 0; list-style: none; }
+ul.plain li { padding: 10px 0; border-bottom: 1px solid var(--edge-soft); }
+ul.plain a { color: var(--ink); text-decoration: none; font-weight: 600; }
+ul.plain a:hover { color: var(--red-bright); }
+
+.chatlayout { display: grid; grid-template-columns: 250px 1fr; gap: 16px; align-items: start; }
+.threadlist { display: grid; gap: 8px; }
+.threaditem {
+  display: block; padding: 12px 14px; border: 1px solid var(--edge);
+  border-radius: 10px; background: var(--panel); text-decoration: none;
+}
+.threaditem.is-on { border-color: var(--red); }
+.threaditem-who { display: block; color: var(--ink); font-size: 13.5px; font-weight: 700; }
+.threaditem-preview { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+.threadview { margin: 0; }
+
+/* ------------------------------------------------------------------ chat */
+
+.bubbles {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 340px; min-height: 120px; overflow-y: auto;
+  padding: 4px 2px; margin-bottom: 14px;
+}
+.bubble {
+  max-width: 82%; padding: 9px 13px; border-radius: 14px;
+  font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere;
+  background: var(--panel-soft); color: var(--ink); align-self: flex-start;
+}
+.bubble.mine {
+  align-self: flex-end;
+  background: linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%);
+  color: #fff;
+}
+.chat-hint { margin: 0; color: var(--muted); font-size: 13px; }
+
+.chatform { display: flex; gap: 8px; }
+.chatform input {
+  flex: 1; padding: 11px 13px; background: var(--bg-raise); color: var(--ink);
+  border: 1px solid var(--edge); border-radius: 8px; font: inherit; font-size: 14px;
+}
+.chatform input:focus { outline: 2px solid var(--red); outline-offset: 1px; border-color: transparent; }
+
+.chat { position: fixed; right: 20px; bottom: 20px; z-index: 50; }
+.chat-bubble {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 54px; height: 54px; border: 0; border-radius: 50%;
+  background: linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%);
+  color: #fff; cursor: pointer;
+  box-shadow: 0 10px 30px rgba(226, 35, 26, .36);
+}
+.chat-bubble svg { width: 24px; height: 24px; }
+.chat-bubble:hover { filter: brightness(1.12); }
+.chat-unread {
+  position: absolute; top: -2px; right: -2px; min-width: 19px; height: 19px;
+  padding: 0 5px; border-radius: 999px; background: var(--ink); color: var(--bg);
+  font-size: 11px; font-weight: 800; line-height: 19px;
+}
+
+.chat-panel {
+  position: absolute; right: 0; bottom: 68px; width: min(330px, calc(100vw - 40px));
+  padding: 16px; background: var(--panel);
+  border: 1px solid var(--edge); border-radius: var(--radius);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+}
+.chat-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; font-size: 12px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--muted);
+}
+.chat-close {
+  border: 0; background: none; color: var(--muted);
+  font-size: 22px; line-height: 1; cursor: pointer; padding: 0 2px;
+}
+.chat-close:hover { color: var(--red-bright); }
+.chat-foot { margin: 12px 0 0; font-size: 12px; color: var(--muted); }
+
+@media (max-width: 680px) {
+  .chatlayout { grid-template-columns: 1fr; }
+  .chat { right: 14px; bottom: 14px; }
+  .report-head { flex-direction: column; align-items: flex-start; gap: 6px; }
+}

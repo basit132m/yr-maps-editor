@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Admin &mdash; {{ site_name }}{% endblock %}
+{% block content %}
+<section class="page-head">
+  <p class="eyebrow">Admin</p>
+  <h1>Overview</h1>
+</section>
+
+{% include "_adminnav.html" %}
+
+<section class="stats">
+  <div><span class="stat-label">Open</span><span class="stat-value">{{ counts.open }}</span></div>
+  <div><span class="stat-label">Planned</span><span class="stat-value">{{ counts.planned }}</span></div>
+  <div><span class="stat-label">All reports</span><span class="stat-value">{{ counts.total }}</span></div>
+  <div><span class="stat-label">Chats waiting</span><span class="stat-value">{{ waiting }}</span></div>
+</section>
+
+<section class="panel">
+  <h2>Latest reports</h2>
+  {% if recent %}
+  <ul class="plain">
+    {% for item in recent %}
+    <li>
+      <a href="/admin/reports">{{ item.subject }}</a>
+      <span class="tag status-{{ item.status }}">{{ item.status_label }}</span>
+      <span class="report-meta">{{ item.kind_label }} &middot; {{ item.created_at[:10] }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="report-meta">Nothing yet.</p>{% endif %}
+</section>
+
+<section class="panel">
+  <h2>Latest chats</h2>
+  {% if threads %}
+  <ul class="plain">
+    {% for thread in threads %}
+    <li>
+      <a href="/admin/chats?open_id={{ thread.id }}">{{ thread.who }}</a>
+      {% if thread.admin_unread %}<span class="tag tag-cncnet">{{ thread.admin_unread }} new</span>{% endif %}
+      <span class="report-meta">{{ thread.preview[:70] }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="report-meta">Nothing yet.</p>{% endif %}
+</section>
+{% endblock %}

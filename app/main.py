@@ -5,12 +5,16 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import FastAPI, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import (HTMLResponse, JSONResponse,
+                               RedirectResponse, Response)
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import accounts, db, storage
-from .config import REQUIRE_LOGIN, SESSION_COOKIE, SESSION_DAYS, SITE_NAME
+import secrets
+
+from . import accounts, chat, db, storage, support
+from .config import (CLIENT_COOKIE, REQUIRE_LOGIN, SESSION_COOKIE,
+                     SESSION_DAYS, SITE_NAME)
 from .mapfile import ALLOWED_EXTENSIONS, MAX_UPLOAD_BYTES, MapError, YRMap
 from .mods import BY_ID, REGISTRY
 from .preview import render_png
@@ -26,6 +30,34 @@ db.init()
 
 def current_user(request: Request):
     return accounts.user_for_session(request.cookies.get(SESSION_COOKIE))
+
+
+def client_token(request: Request) -> str:
+    """The visitor's own identifier, minted on first use.
+
+    It names nobody. It exists so a visitor without an account still gets
+    their own chat thread and their own report history back, and so one
+    visitor can be rate-limited without rate-limiting everyone.
+    """
+    return request.cookies.get(CLIENT_COOKIE) or secrets.token_urlsafe(18)
+
+
+def set_client_cookie(response: Response, request: Request, token: str) -> None:
+    response.set_cookie(
+        CLIENT_COOKIE, token,
+        max_age=365 * 24 * 3600, httponly=True, samesite="lax",
+        secure=request.url.scheme == "https", path="/",
+    )
+
+
+def require_admin(request: Request):
+    """The signed-in admin, or a response explaining why not."""
+    user = current_user(request)
+    if user is not None and user.is_admin:
+        return user, None
+    if user is None:
+        return None, RedirectResponse("/signin", status_code=303)
+    return None, error_page(request, "That area is for administrators.", 403)
 
 
 def render(request: Request, template: str, **context) -> HTMLResponse:
@@ -288,3 +320,147 @@ def update_password(request: Request, current: str = Form(""),
     response = RedirectResponse("/account?saved=password", status_code=303)
     set_session_cookie(response, request, accounts.start_session(user.id))
     return response
+
+
+# ---------------------------------------------------------------- support
+
+
+@app.get("/support", response_class=HTMLResponse)
+def support_page(request: Request, kind: str = "problem"):
+    token = client_token(request)
+    response = render(
+        request, "support.html",
+        kind=kind if kind in support.KINDS else "problem",
+        kinds=support.KINDS,
+        mine=support.for_visitor(token),
+    )
+    set_client_cookie(response, request, token)
+    return response
+
+
+@app.post("/support", response_class=HTMLResponse)
+def support_submit(request: Request, kind: str = Form("problem"),
+                   subject: str = Form(""), body: str = Form(""),
+                   contact: str = Form("")):
+    token = client_token(request)
+    user = current_user(request)
+    try:
+        support.submit(kind, subject, body, contact, token,
+                       user.id if user else None)
+    except support.SupportError as exc:
+        response = render(request, "support.html", kind=kind, kinds=support.KINDS,
+                          mine=support.for_visitor(token), error=str(exc),
+                          subject=subject, body=body, contact=contact)
+        response.status_code = 400
+        set_client_cookie(response, request, token)
+        return response
+
+    response = RedirectResponse("/support?sent=1", status_code=303)
+    set_client_cookie(response, request, token)
+    return response
+
+
+# ------------------------------------------------------------------- chat
+
+
+@app.get("/chat/messages")
+def chat_messages(request: Request, after: int = 0):
+    token = client_token(request)
+    messages = chat.history(token, after_id=after)
+    response = JSONResponse({"messages": [
+        {"id": m.id, "sender": m.sender, "body": m.body, "at": m.created_at}
+        for m in messages
+    ]})
+    set_client_cookie(response, request, token)
+    return response
+
+
+@app.post("/chat/send")
+async def chat_send(request: Request, body: str = Form("")):
+    token = client_token(request)
+    user = current_user(request)
+    try:
+        message = chat.send_from_visitor(token, body, user.id if user else None)
+    except chat.ChatError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+
+    response = JSONResponse({"message": {
+        "id": message.id, "sender": message.sender,
+        "body": message.body, "at": message.created_at}})
+    set_client_cookie(response, request, token)
+    return response
+
+
+# ------------------------------------------------------------------ admin
+
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin_home(request: Request):
+    user, blocked = require_admin(request)
+    if blocked is not None:
+        return blocked
+    return render(request, "admin.html", user=user,
+                  counts=support.counts(), waiting=chat.waiting_count(),
+                  recent=support.listing(limit=8),
+                  threads=chat.conversations(limit=8))
+
+
+@app.get("/admin/reports", response_class=HTMLResponse)
+def admin_reports(request: Request, status: str = "", kind: str = ""):
+    user, blocked = require_admin(request)
+    if blocked is not None:
+        return blocked
+    return render(request, "admin_reports.html", user=user,
+                  reports=support.listing(status or None, kind or None),
+                  statuses=support.STATUSES, kinds=support.KINDS,
+                  active_status=status, active_kind=kind)
+
+
+@app.post("/admin/reports/{report_id}")
+def admin_update_report(request: Request, report_id: int,
+                        status: str = Form("open"), admin_note: str = Form("")):
+    user, blocked = require_admin(request)
+    if blocked is not None:
+        return blocked
+    try:
+        support.update(report_id, status, admin_note)
+    except support.SupportError as exc:
+        return error_page(request, str(exc))
+    return RedirectResponse("/admin/reports", status_code=303)
+
+
+@app.get("/admin/chats", response_class=HTMLResponse)
+def admin_chats(request: Request, open_id: int = 0):
+    user, blocked = require_admin(request)
+    if blocked is not None:
+        return blocked
+    threads = chat.conversations()
+    active = chat.get(open_id) if open_id else (threads[0] if threads else None)
+    if active is not None:
+        chat.mark_read(active.id)
+    return render(request, "admin_chats.html", user=user, threads=threads,
+                  active=active,
+                  messages=chat.thread(active.id) if active else [])
+
+
+@app.post("/admin/chats/{conversation_id}/send")
+def admin_chat_send(request: Request, conversation_id: int, body: str = Form("")):
+    user, blocked = require_admin(request)
+    if blocked is not None:
+        return blocked
+    try:
+        chat.send_from_admin(conversation_id, body)
+    except chat.ChatError as exc:
+        return error_page(request, str(exc))
+    return RedirectResponse(f"/admin/chats?open_id={conversation_id}", status_code=303)
+
+
+@app.get("/admin/chats/{conversation_id}/messages")
+def admin_chat_messages(request: Request, conversation_id: int, after: int = 0):
+    user, blocked = require_admin(request)
+    if blocked is not None:
+        return JSONResponse({"error": "forbidden"}, status_code=403)
+    return JSONResponse({"messages": [
+        {"id": m.id, "sender": m.sender, "body": m.body, "at": m.created_at}
+        for m in chat.thread(conversation_id, after_id=after)
+    ]})

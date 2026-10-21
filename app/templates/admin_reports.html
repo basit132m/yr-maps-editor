@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Reports &mdash; {{ site_name }}{% endblock %}
+{% block content %}
+<section class="page-head">
+  <p class="eyebrow">Admin</p>
+  <h1>Reports</h1>
+</section>
+
+{% include "_adminnav.html" %}
+
+<div class="filters">
+  <a class="chip {% if not active_status %}is-on{% endif %}" href="/admin/reports">All</a>
+  {% for value, label in statuses.items() %}
+  <a class="chip {% if active_status == value %}is-on{% endif %}"
+     href="/admin/reports?status={{ value }}">{{ label }}</a>
+  {% endfor %}
+  <span class="filters-gap"></span>
+  {% for value, label in kinds.items() %}
+  <a class="chip {% if active_kind == value %}is-on{% endif %}"
+     href="/admin/reports?kind={{ value }}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if not reports %}<p class="note">Nothing matches that.</p>{% endif %}
+
+{% for item in reports %}
+<article class="panel report">
+  <div class="report-head">
+    <strong>{{ item.subject }}</strong>
+    <span class="tag status-{{ item.status }}">{{ item.status_label }}</span>
+  </div>
+  <p class="report-meta">
+    #{{ item.id }} &middot; {{ item.kind_label }} &middot; {{ item.created_at[:16] }}
+    {% if item.user_email %}&middot; {{ item.user_email }}
+    {% elif item.contact %}&middot; {{ item.contact }}{% endif %}
+  </p>
+  <p class="report-body">{{ item.body }}</p>
+
+  <form action="/admin/reports/{{ item.id }}" method="post" class="report-form">
+    <select name="status" aria-label="Status">
+      {% for value, label in statuses.items() %}
+      <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <input name="admin_note" type="text" maxlength="4000" value="{{ item.admin_note }}"
+           placeholder="Reply the sender will see">
+    <button type="submit" class="btn btn-small"><span>Save</span></button>
+  </form>
+</article>
+{% endfor %}
+{% endblock %}

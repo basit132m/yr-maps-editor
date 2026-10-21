@@ -24,7 +24,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from . import db
-from .config import ALLOWED_EMAIL_DOMAINS, SESSION_DAYS
+from .config import ADMIN_EMAILS, ALLOWED_EMAIL_DOMAINS, SESSION_DAYS
 
 #: scrypt parameters. Roughly 100 ms per hash on a small VPS: slow enough
 #: to make guessing expensive, fast enough that signing in feels instant.
@@ -124,6 +124,21 @@ def check_password_quality(password: str) -> None:
 # ----------------------------------------------------------------- users
 
 
+def _sync_admin(conn, row: sqlite3.Row) -> sqlite3.Row:
+    """Keep the admin flag in step with the configured addresses.
+
+    Listing an address grants admin on next sign-in; removing it takes the
+    flag away again, so access is controlled from the environment rather
+    than by editing the database.
+    """
+    should_be = 1 if row["email"] in ADMIN_EMAILS else 0
+    if row["is_admin"] != should_be:
+        conn.execute("UPDATE users SET is_admin = ? WHERE id = ?",
+                     (should_be, row["id"]))
+        row = conn.execute("SELECT * FROM users WHERE id = ?", (row["id"],)).fetchone()
+    return row
+
+
 def _row_to_user(row: sqlite3.Row) -> User:
     return User(id=row["id"], email=row["email"], email_display=row["email_display"],
                 name=row["name"], is_admin=bool(row["is_admin"]))
@@ -146,6 +161,7 @@ def create_user(email: str, password: str, name: str = "") -> User:
             raise AccountError("An account already exists for that address.") from None
         row = conn.execute("SELECT * FROM users WHERE id = ?",
                            (cursor.lastrowid,)).fetchone()
+        row = _sync_admin(conn, row)
     return _row_to_user(row)
 
 
@@ -161,6 +177,9 @@ def authenticate(email: str, password: str) -> User:
 
     if row is None or not verify_password(password, row["password_hash"]):
         raise AccountError("That email and password do not match.")
+
+    with db.transaction() as conn:
+        row = _sync_admin(conn, row)
     return _row_to_user(row)
 
 

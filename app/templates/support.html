@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Report a problem or request a feature &mdash; {{ site_name }}{% endblock %}
+{% block content %}
+<section class="page-head">
+  <p class="eyebrow">Support</p>
+  <h1>Tell us what you need</h1>
+  <p class="page-head-sub">
+    No account needed. Leave an email if you want a reply.
+  </p>
+</section>
+
+{% if request.query_params.get("sent") %}
+<p class="note ok">Thanks &mdash; that has reached us. You can see it below.</p>
+{% endif %}
+{% if error %}<p class="note warn">{{ error }}</p>{% endif %}
+
+<section class="panel">
+  <div class="kindpick">
+    {% for value, label in kinds.items() %}
+    <a class="kindpick-option {% if kind == value %}is-on{% endif %}"
+       href="/support?kind={{ value }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  <form action="/support" method="post" class="stack">
+    <input type="hidden" name="kind" value="{{ kind }}">
+    <div class="field">
+      <label for="subject">{% if kind == "feature" %}What should it do?{% else %}What went wrong?{% endif %}</label>
+      <input id="subject" name="subject" type="text" maxlength="120" required
+             value="{{ subject or '' }}"
+             placeholder="{% if kind == 'feature' %}Let ore regrow faster{% else %}My map will not open in the game{% endif %}">
+    </div>
+    <div class="field">
+      <label for="body">Details</label>
+      <textarea id="body" name="body" rows="6" maxlength="4000" required
+                placeholder="{% if kind == 'feature' %}What it should do, and why it would help.{% else %}What you did, what happened, and which map.{% endif %}">{{ body or '' }}</textarea>
+    </div>
+    <div class="field">
+      <label for="contact">Email <span class="optional">optional</span></label>
+      <input id="contact" name="contact" type="email" maxlength="160"
+             value="{{ contact or (user.email_display if user else '') }}"
+             placeholder="Only if you want a reply">
+    </div>
+    <button type="submit" class="btn"><span>Send it</span></button>
+  </form>
+</section>
+
+{% if mine %}
+<h2 class="section-title">What you have sent</h2>
+{% for item in mine %}
+<article class="panel report">
+  <div class="report-head">
+    <strong>{{ item.subject }}</strong>
+    <span class="tag status-{{ item.status }}">{{ item.status_label }}</span>
+  </div>
+  <p class="report-meta">{{ item.kind_label }} &middot; {{ item.created_at[:10] }}</p>
+  <p class="report-body">{{ item.body }}</p>
+  {% if item.admin_note %}
+  <p class="note ok"><strong>Reply:</strong> {{ item.admin_note }}</p>
+  {% endif %}
+</article>
+{% endfor %}
+{% endif %}
+{% endblock %}

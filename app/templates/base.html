@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/style.css?v=13">
+<link rel="stylesheet" href="/static/style.css?v=14">
 <script>
 /* Set the theme before the first paint, or the page flashes dark then light. */
 (function () {
@@ -60,6 +60,8 @@
     {% else %}
       <a href="/signin">Sign in</a>
     {% endif %}
+    {% if user and user.is_admin %}<a href="/admin">Admin</a>{% endif %}
+    <a href="/support">Support</a>
     <a href="https://www.bankofyrmaps.com/" target="_blank" rel="noopener">
       Bank of YR Maps <span aria-hidden="true">&rarr;</span>
     </a>
@@ -70,11 +72,45 @@
 {% block content %}{% endblock %}
 </main>
 
+{% if not request.url.path.startswith("/admin") %}
+<!-- Live chat. Hidden until opened, and polls only while it is open. -->
+<div class="chat" data-chat hidden>
+  <button type="button" class="chat-bubble" data-chat-open
+          aria-label="Chat with us" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.9-.9L3 20.5l1.6-4.6A8.4 8.4 0 0 1 3.6 11 8.4 8.4 0 0 1 12 2.6a8.4 8.4 0 0 1 9 8.9z"/>
+    </svg>
+    <span class="chat-unread" data-chat-unread hidden></span>
+  </button>
+
+  <section class="chat-panel" data-chat-panel hidden aria-label="Chat">
+    <header class="chat-head">
+      <span>Chat with us</span>
+      <button type="button" class="chat-close" data-chat-close aria-label="Close chat">&times;</button>
+    </header>
+    <div class="bubbles" data-chat-log>
+      <p class="chat-hint">
+        Ask anything about the editor. No account needed &mdash; we reply here.
+      </p>
+    </div>
+    <form class="chatform" data-chat-form>
+      <input name="body" type="text" maxlength="2000" placeholder="Write a message"
+             autocomplete="off" required>
+      <button type="submit" class="btn btn-small"><span>Send</span></button>
+    </form>
+    <p class="chat-foot">
+      Prefer a form? <a href="/support">Report a problem or request a feature</a>
+    </p>
+  </section>
+</div>
+{% endif %}
+
 <p class="engine">
   Engine created by
   <a href="https://www.bankofyrmaps.com/" target="_blank" rel="noopener">Bank of YR Maps</a>
 </p>
 
-<script src="/static/app.js?v=2" defer></script>
+<script src="/static/app.js?v=3" defer></script>
 </body>
 </html>

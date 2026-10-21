@@ -30,5 +30,23 @@ REQUIRE_LOGIN = os.getenv("YRME_REQUIRE_LOGIN", "0").lower() in {"1", "true", "y
 
 SESSION_COOKIE = "yrme_session"
 
+#: Identifies a visitor who has not signed in, so their own reports and
+#: chat thread come back to them. Random, and tied to nothing else.
+CLIENT_COOKIE = "yrme_client"
+
+#: Canonical Gmail addresses granted admin on sign-in, comma separated.
+#: This is how the first admin is made without a console step.
+ADMIN_EMAILS = tuple(
+    part.strip().lower()
+    for part in os.getenv("YRME_ADMIN_EMAILS", "").split(",")
+    if part.strip()
+)
+
+#: Anti-spam: how many reports one visitor may send per hour.
+REPORTS_PER_HOUR = int(os.getenv("YRME_REPORTS_PER_HOUR", "5"))
+
+#: Anti-spam: how many chat messages one visitor may send per minute.
+CHAT_MESSAGES_PER_MINUTE = int(os.getenv("YRME_CHAT_PER_MINUTE", "20"))
+
 #: How long a signed-in session lasts without being used.
 SESSION_DAYS = int(os.getenv("YRME_SESSION_DAYS", "30"))

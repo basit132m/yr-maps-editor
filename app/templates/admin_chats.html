@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Chats &mdash; {{ site_name }}{% endblock %}
+{% block content %}
+<section class="page-head">
+  <p class="eyebrow">Admin</p>
+  <h1>Chats</h1>
+</section>
+
+{% include "_adminnav.html" %}
+
+{% if not threads %}
+<p class="note">No one has started a chat yet.</p>
+{% else %}
+<div class="chatlayout">
+  <aside class="threadlist">
+    {% for thread in threads %}
+    <a class="threaditem {% if active and active.id == thread.id %}is-on{% endif %}"
+       href="/admin/chats?open_id={{ thread.id }}">
+      <span class="threaditem-who">
+        {{ thread.who }}
+        {% if thread.admin_unread %}<span class="tag tag-cncnet">{{ thread.admin_unread }}</span>{% endif %}
+      </span>
+      <span class="threaditem-preview">{{ thread.preview[:48] }}</span>
+    </a>
+    {% endfor %}
+  </aside>
+
+  <section class="panel threadview">
+    {% if active %}
+    <h2>{{ active.who }}</h2>
+    <div class="bubbles" data-admin-thread="{{ active.id }}">
+      {% for message in messages %}
+      <div class="bubble {% if message.from_admin %}mine{% endif %}" data-id="{{ message.id }}">
+        {{ message.body }}
+      </div>
+      {% endfor %}
+    </div>
+    <form action="/admin/chats/{{ active.id }}/send" method="post" class="chatform">
+      <input name="body" type="text" maxlength="2000" placeholder="Write a reply" required autofocus>
+      <button type="submit" class="btn btn-small"><span>Send</span></button>
+    </form>
+    {% endif %}
+  </section>
+</div>
+{% endif %}
+{% endblock %}

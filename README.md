@@ -206,6 +206,27 @@ defaults to off. The tool takes about half a minute to use, and a forced
 signup costs more visitors than it gains; turn it on when the account
 features are worth the friction.
 
+## Support, chat and the admin panel
+
+**Visitors need no account for any of it.** A random token in a cookie is
+their identity: it names nobody, and it exists so their own reports and
+their own chat thread come back to them, and so one visitor can be
+throttled without throttling everyone.
+
+- `/support` takes problem reports and feature requests, with an optional
+  address if they want a reply. An admin answer appears on the same page.
+- A chat widget sits on every page. Messages arrive by polling, not a
+  websocket: the volume is a handful of conversations, polling survives
+  every proxy without reconnection logic, and a stale socket cannot
+  silently swallow a message. It polls every 3 seconds while open, every
+  30 while closed, and stops entirely when the tab is hidden.
+
+**Only the admin panel needs a login.** `YRME_ADMIN_EMAILS` lists the
+addresses that get it, so the first admin is made by signing up rather
+than by a console step, and removing an address takes the flag away on
+next sign-in. Tests cover a stranger, an ordinary signed-in user and the
+admin against every admin route, including the ones that write.
+
 ## Known limits
 
 - **Forced options need the CnCNet client.** Each one is badged in the UI.

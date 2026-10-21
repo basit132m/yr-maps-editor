@@ -40,6 +40,49 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 CREATE INDEX IF NOT EXISTS sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS sessions_expiry ON sessions(expires_at);
+
+-- Problem reports and feature requests. No account is needed to send one:
+-- a visitor is identified by a browser token, and may leave an address if
+-- they want an answer.
+CREATE TABLE IF NOT EXISTS reports (
+    id           INTEGER PRIMARY KEY,
+    kind         TEXT    NOT NULL,              -- 'problem' or 'feature'
+    subject      TEXT    NOT NULL,
+    body         TEXT    NOT NULL,
+    contact      TEXT    NOT NULL DEFAULT '',   -- optional reply address
+    client_token TEXT    NOT NULL,              -- anonymous visitor
+    user_id      INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    status       TEXT    NOT NULL DEFAULT 'open',
+    admin_note   TEXT    NOT NULL DEFAULT '',
+    created_at   TEXT    NOT NULL,
+    updated_at   TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS reports_status ON reports(status, created_at);
+CREATE INDEX IF NOT EXISTS reports_client ON reports(client_token);
+
+-- One chat thread per visitor.
+CREATE TABLE IF NOT EXISTS conversations (
+    id              INTEGER PRIMARY KEY,
+    client_token    TEXT    NOT NULL UNIQUE,
+    user_id         INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    created_at      TEXT    NOT NULL,
+    last_message_at TEXT    NOT NULL,
+    admin_unread    INTEGER NOT NULL DEFAULT 0,
+    closed          INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS conversations_recent ON conversations(last_message_at);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id              INTEGER PRIMARY KEY,
+    conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    sender          TEXT    NOT NULL,           -- 'visitor' or 'admin'
+    body            TEXT    NOT NULL,
+    created_at      TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS messages_thread ON messages(conversation_id, id);
 """
 
 
