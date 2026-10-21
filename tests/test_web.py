@@ -200,3 +200,24 @@ def test_credited_map_shows_its_author_and_no_credit_link(map_bytes):
     html = upload(map_bytes).text
     assert "Westwood" in html
     assert "Not credited" not in html
+
+
+def test_the_header_does_not_invite_anyone_to_sign_up():
+    """Accounts are for the admin. Visitors need none, so the header
+    offers none."""
+    client.cookies.clear()
+    html = client.get("/").text
+    strip = html[html.index("topstrip"):html.index("</div>", html.index("topstrip"))]
+    assert "/signin" not in strip
+    assert "/signup" not in strip
+    assert "Sign in" not in strip
+    # The things a visitor does need are still there.
+    assert "/support" in strip
+    assert "bankofyrmaps.com" in strip
+
+
+def test_signing_in_still_works_when_typed():
+    """The admin reaches it by URL even though nothing links to it."""
+    client.cookies.clear()
+    assert client.get("/signin").status_code == 200
+    assert client.get("/signup").status_code == 200

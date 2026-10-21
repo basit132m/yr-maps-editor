@@ -52,15 +52,15 @@
       </svg>
       <span>Theme</span>
     </button>
+    {# Accounts exist for the admin, not for visitors, so nothing here
+       invites anyone to sign up. /signin still works if typed. #}
     {% if user %}
       <a class="who" href="/account">
         <span class="avatar" aria-hidden="true">{{ user.initials }}</span>
         {{ user.display_name }}
       </a>
-    {% else %}
-      <a href="/signin">Sign in</a>
+      {% if user.is_admin %}<a href="/admin">Admin</a>{% endif %}
     {% endif %}
-    {% if user and user.is_admin %}<a href="/admin">Admin</a>{% endif %}
     <a href="/support">Support</a>
     <a href="https://www.bankofyrmaps.com/" target="_blank" rel="noopener">
       Bank of YR Maps <span aria-hidden="true">&rarr;</span>
