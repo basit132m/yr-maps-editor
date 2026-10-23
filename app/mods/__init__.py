@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .auto_repair import AutoRepairMod
 from .base import Change, Choice, Mod, Option
+from .crates import CratesMod
 from .game_speed import GameSpeedMod
 from .money import MoneyMod
 from .never_destroyed import NeverDestroyedMod
@@ -13,6 +14,7 @@ REGISTRY: tuple[Mod, ...] = (
     AutoRepairMod(),
     MoneyMod(),
     GameSpeedMod(),
+    CratesMod(),
     NeverDestroyedMod(),
 )
 

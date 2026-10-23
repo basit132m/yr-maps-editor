@@ -136,7 +136,9 @@ def error_page(request: Request, message: str, status_code: int = 400,
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return render(request, "index.html", max_mb=MAX_UPLOAD_BYTES // (1024 * 1024))
+    return render(request, "index.html",
+                  max_mb=MAX_UPLOAD_BYTES // (1024 * 1024),
+                  upgrade_count=len(REGISTRY))
 
 
 @app.get("/healthz")

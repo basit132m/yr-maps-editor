@@ -15,6 +15,8 @@ both.
 |---|---|---|
 | **Auto-repair for buildings** | `[IQ] RepairSell=0` | **everywhere** |
 | **Never-destroyed buildings** | `RepairPercent` / `RepairStep` / `RepairRate` | everywhere |
+| **More crates** | `[CrateRules] CrateMinimum` / `CrateRegen` | everywhere |
+| **More crates — client setting** | `chkCrates`, `cmbCratesModifier` | CnCNet only |
 | **Repair — slow regeneration** | `SelfHealing=yes` on every buildable structure | everywhere |
 | **Repair — CnCNet lobby switch** | `chkAutoRepair=true` | CnCNet only |
 | **Unlimited money — income** | `ProduceCashDelay` / `ProduceCashAmount` / `ProduceCashStartup` on each faction's Construction Yard | everywhere |
@@ -82,6 +84,23 @@ Queue speed via `BuildSpeed` is where the real gain is, so that is the
 only thing changed.
 
 A map that sets its own `BuildupTime` keeps the author's value.
+
+### How the crate amount works
+
+`[CrateRules] CrateMinimum` is 1 by default, and the engine keeps about
+one crate per human player and never fewer than this. So the floor only
+bites above the player count: asking for 4 changes nothing on a
+six-player map, which is why the smallest amount offered is 10.
+`CrateRegen` is the average minutes before a collected crate returns,
+stock 3.
+
+`CrateMaximum` is 255 and is left alone; every amount sits well under it.
+A community map in the test corpus ships `CrateMinimum=15` without
+trouble, so these are proven numbers.
+
+On CnCNet the client has its own crate setting whose lowest value allows
+a single crate, which would quietly cap whatever the map asks for. It is
+raised to match rather than left to fight.
 
 ### Why map-side rules overrides are safe
 

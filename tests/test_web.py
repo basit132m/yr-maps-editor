@@ -59,7 +59,7 @@ def test_full_journey_returns_an_edited_map(map_bytes):
         "mods": ["auto_repair", "money", "game_speed"],
         "forced_option": "1", "structures": "1", "fast_repair": "1", "auto": "1",
         "income": "1", "rate": "generous", "starting": "1", "credits": "0",
-        "speed": "fastest", "build_speed": "fast", "strength": "unbreakable", "lock": "1",
+        "speed": "fastest", "build_speed": "fast", "strength": "unbreakable", "amount": "lots", "regen": "1", "forced": "1", "lock": "1",
     })
     assert response.status_code == 200
     assert "attachment" in response.headers["content-disposition"]
@@ -128,16 +128,20 @@ def _mod_inputs(html):
 
 def test_no_upgrade_is_preselected(map_bytes):
     """The visitor chooses; nothing is ticked for them."""
+    from app.mods import REGISTRY
+
     tags = _mod_inputs(upload(map_bytes).text)
-    assert len(tags) == 4
+    assert len(tags) == len(REGISTRY)
     for tag in tags:
         assert "checked" not in tag, tag
 
 
 def test_every_upgrade_panel_can_collapse(map_bytes):
+    from app.mods import REGISTRY
+
     html = upload(map_bytes).text
-    assert html.count("data-mod-toggle") == 4
-    assert html.count('class="mod-clip"') == 4
+    assert html.count("data-mod-toggle") == len(REGISTRY)
+    assert html.count('class="mod-clip"') == len(REGISTRY)
 
 
 def test_sub_options_keep_their_recommended_defaults(map_bytes):
@@ -155,7 +159,7 @@ def test_picker_is_only_presentation(map_bytes):
         "token": token, "mods": ["auto_repair"], "auto": "1",
         # Values belonging to upgrades the user did not tick.
         "income": "1", "rate": "generous", "build_speed": "fast",
-        "strength": "unbreakable",
+        "strength": "unbreakable", "amount": "lots", "regen": "1", "forced": "1",
     })
     edited = YRMap.load(response.content)
     assert edited.ini.get("IQ", "RepairSell") == "0"
@@ -232,3 +236,19 @@ def test_the_site_is_dark_only():
     css = client.get("/static/style.css").text
     assert "color-scheme: dark" in css
     assert "color-scheme: light" not in css
+
+
+def test_the_homepage_advertises_every_upgrade():
+    """The counter and the cards both go stale the moment one is added.
+
+    The cards carry their own wording rather than the mod's name, so this
+    checks that there is one for each, not that they are worded alike.
+    """
+    import re
+
+    from app.mods import REGISTRY
+
+    html = client.get("/").text
+    assert f'<span class="stat-value">{len(REGISTRY)}</span>' in html
+    cards = re.findall(r"<article class=\"card\">\s*<h3>([^<]+)</h3>", html)
+    assert len(cards) == len(REGISTRY), cards

@@ -50,7 +50,8 @@ def test_binary_sections_are_never_touched(map_bytes, all_options):
 def test_only_expected_sections_are_added(map_bytes, all_options):
     before = set(IniFile.from_bytes(map_bytes).sections())
     after = set(apply_all(map_bytes, all_options).ini.sections())
-    assert after - before == {"ForcedOptions", "General", "IQ", *BUILDINGS}
+    assert after - before == {"ForcedOptions", "General", "IQ", "CrateRules",
+                              *BUILDINGS}
 
 
 def test_forced_options_written(map_bytes, all_options):
@@ -359,3 +360,63 @@ def test_the_authors_own_name_is_never_overwritten(map_bytes, all_options):
 def test_an_uncredited_map_is_not_given_an_author(map_bytes, all_options):
     raw = map_bytes.replace(b"Author=Westwood\r\n", b"")
     assert apply_all(raw, all_options).ini.get("Basic", "Author") is None
+
+
+# -- crates ------------------------------------------------------------------
+
+
+def test_crates_raise_the_floor_and_shorten_the_wait(map_bytes, all_options):
+    from app.mods.crates import AMOUNTS, FAST_REGEN
+    ini = apply_all(map_bytes, all_options).ini
+    assert ini.get("CrateRules", "CrateMinimum") == AMOUNTS["lots"][0]
+    assert ini.get("CrateRules", "CrateRegen") == FAST_REGEN
+
+
+@pytest.mark.parametrize("amount", sorted(AMOUNTS := {"more", "lots", "everywhere"}))
+def test_every_amount_beats_the_default_and_stays_under_the_ceiling(amount):
+    """Stock CrateMinimum is 1 and the engine's ceiling is 255. An amount
+    below the player count would change nothing; one above the ceiling
+    would ask for something the engine cannot give."""
+    from app.mods.crates import AMOUNTS as TABLE, CRATE_MAXIMUM
+    minimum = int(TABLE[amount][0])
+    assert 8 < minimum <= CRATE_MAXIMUM
+
+
+@pytest.mark.parametrize("amount", ["more", "lots", "everywhere"])
+def test_the_cncnet_setting_never_caps_what_the_map_asks(amount):
+    """Its lowest setting allows a single crate, which would undo this."""
+    from app.mods.crates import AMOUNTS
+    assert int(AMOUNTS[amount][1]) >= 2
+
+
+def test_crates_work_without_cncnet(map_bytes):
+    ymap = YRMap.load(map_bytes)
+    BY_ID["crates"].apply(ymap, {"amount": "more", "regen": "1", "forced": "0"})
+    assert ymap.ini.get("CrateRules", "CrateMinimum") == "10"
+    assert not ymap.ini.has_section("ForcedOptions")
+
+
+def test_regen_can_be_left_at_the_games_own_pace(map_bytes):
+    ymap = YRMap.load(map_bytes)
+    BY_ID["crates"].apply(ymap, {"amount": "lots", "regen": "0", "forced": "0"})
+    assert ymap.ini.get("CrateRules", "CrateRegen") is None
+
+
+def test_a_maps_own_crate_rules_survive(map_bytes):
+    """A map that tunes its own crates keeps everything we do not set."""
+    raw = map_bytes + (
+        b"\r\n[CrateRules]\r\nCrateMinimum=4\r\nCrateRadius=10\r\n"
+        b"SoloCrateMoney=5000\r\nWoodCrate=Money\r\n"
+    )
+    ymap = YRMap.load(raw)
+    BY_ID["crates"].apply(ymap, {"amount": "lots", "regen": "1", "forced": "0"})
+    assert ymap.ini.get("CrateRules", "CrateMinimum") == "25"   # replaced
+    assert ymap.ini.get("CrateRules", "CrateRadius") == "10"    # kept
+    assert ymap.ini.get("CrateRules", "SoloCrateMoney") == "5000"
+    assert ymap.ini.get("CrateRules", "WoodCrate") == "Money"
+
+
+def test_unknown_amount_falls_back_to_the_default(map_bytes):
+    ymap = YRMap.load(map_bytes)
+    BY_ID["crates"].apply(ymap, {"amount": "../../etc/passwd", "forced": "0"})
+    assert ymap.ini.get("CrateRules", "CrateMinimum") == "25"
